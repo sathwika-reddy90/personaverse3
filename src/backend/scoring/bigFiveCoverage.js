@@ -1,4 +1,4 @@
-import { BIG_FIVE } from "../../questions/bigFiveMapping";
+import { BIG_FIVE } from "../questions/bigFiveMapping";
 import { calculateCoverage } from "./coverageUtils";
 
 export function calculateBigFiveCoverage(answers) {

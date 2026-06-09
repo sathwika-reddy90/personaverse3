@@ -1,4 +1,4 @@
-import { RELIABILITY } from "../../questions/reliabilityMapping";
+import { RELIABILITY } from "../questions/reliabilityMapping";
 
 export function calculateLayer2Reliability(answers) {
   const consistencyCoverage =

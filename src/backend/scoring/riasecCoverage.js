@@ -1,4 +1,4 @@
-import { RIASEC } from "../../questions/riasecMapping";
+import { RIASEC } from "../questions/riasecMapping";
 import { calculateCoverage } from "./coverageUtils";
 
 export function calculateRiasecCoverage(answers) {

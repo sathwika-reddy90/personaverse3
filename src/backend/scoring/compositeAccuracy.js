@@ -1,4 +1,4 @@
-import { COMPOSITES } from "../../questions/compositeMapping";
+import { COMPOSITES } from "../questions/compositeMapping";
 import { calculateCoverage } from "./coverageUtils";
 
 export function calculateCompositeAccuracy(answers) {
