@@ -1,5 +1,5 @@
 import { ACCURACY_CONFIG } from './accuracyConfig';
-import { QUESTION_MAPPING } from '../questions/questionMapping';
+import { QUESTION_MAPPING } from './questionMapping';
 
 // Contradiction pairs: if a user scores high on both sides of a pair, it
 // signals inconsistent responding within the same trait dimension.
