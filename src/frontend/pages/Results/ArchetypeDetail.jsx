@@ -5,7 +5,7 @@ import GlassCard from '../../components/common/GlassCard';
 import Button from '../../components/common/Button';
 import FloatingBlobs from '../../components/common/FloatingBlobs';
 import { SkeletonCard, SkeletonHero } from '../../components/common/Skeleton';
-import { ARCHETYPES, getArchetype } from '../../../data/archetypes/archetypes';
+import { ARCHETYPES, getArchetype } from '../../../backend/archetypes/archetypes';
 import useReady from '../../hooks/useReady';
 
 export default function ArchetypeDetail() {

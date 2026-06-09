@@ -1,8 +1,8 @@
 import { motion } from 'framer-motion';
 import { useNavigate } from 'react-router-dom';
 import { useApp } from '../../../context/AppContext';
-import { getArchetype } from '../../../data/archetypes/archetypes';
-import { getInsights } from '../../../data/insights/insights';
+import { getArchetype } from '../../../backend/archetypes/archetypes';
+import { getInsights } from '../../../backend/insights/insights';
 import GlassCard from '../common/GlassCard';
 import Button from '../common/Button';
 

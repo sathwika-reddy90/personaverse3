@@ -1,41 +1,40 @@
-// Maps each personality trait to the question IDs that measure it, its scoring
-// weight, and the minimum number of question responses required for reliable
-// coverage of that trait.
+// Maps each personality trait to all question IDs that measure it, its scoring
+// weight multiplier, and the minimum responses required for reliable coverage.
 export const TRAIT_MAPPING = {
   Leadership: {
-    questions: [5],
+    questions: [3, 18, 27, 36],
     weight: 1.2,
-    minimumCoverage: 1,
+    minimumCoverage: 3,
   },
   Creativity: {
-    questions: [13, 15, 21],
+    questions: [12, 13, 14, 15, 17, 29, 30, 37, 42, 45],
     weight: 1.0,
-    minimumCoverage: 2,
+    minimumCoverage: 6,
   },
   Social: {
-    questions: [2, 3, 4, 11, 17, 23],
+    questions: [1, 2, 44],
     weight: 1.0,
-    minimumCoverage: 4,
-  },
-  Discipline: {
-    questions: [1, 12, 19],
-    weight: 1.1,
     minimumCoverage: 2,
   },
+  Discipline: {
+    questions: [6, 7, 8, 22, 24, 35, 40, 46],
+    weight: 1.1,
+    minimumCoverage: 5,
+  },
   Empathy: {
-    questions: [6, 7, 8, 9, 10, 20],
+    questions: [4, 5, 19, 20, 21, 26, 31],
     weight: 1.0,
     minimumCoverage: 4,
   },
   Introspection: {
-    questions: [16, 18, 22],
+    questions: [9, 10, 11, 16, 23, 25, 28, 38, 39, 43],
     weight: 1.0,
-    minimumCoverage: 2,
+    minimumCoverage: 6,
   },
   Risk: {
-    questions: [14, 24, 25],
+    questions: [32, 33, 34, 41],
     weight: 1.1,
-    minimumCoverage: 2,
+    minimumCoverage: 3,
   },
 };
 

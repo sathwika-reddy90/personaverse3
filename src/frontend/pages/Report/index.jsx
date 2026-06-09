@@ -7,8 +7,8 @@ import Button from '../../components/common/Button';
 import EmptyState from '../../components/common/EmptyState';
 import { SkeletonHero, SkeletonCard } from '../../components/common/Skeleton';
 import { useApp } from '../../../context/AppContext';
-import { getArchetype } from '../../../data/archetypes/archetypes';
-import { getInsights, getCareerMatches, AVERAGE_STUDENT } from '../../../data/insights/insights';
+import { getArchetype } from '../../../backend/archetypes/archetypes';
+import { getInsights, getCareerMatches, AVERAGE_STUDENT } from '../../../backend/insights/insights';
 import {
   getOverallScore,
   getPersonalityMatch,
@@ -22,6 +22,12 @@ import {
   getTopStrengths,
   getCompactProfile,
   getCondensedInsight,
+  getBigFiveTraits,
+  getWorkplaceReadiness,
+  getHiringRecommendation,
+  getPreferenceIndicators,
+  getInterviewFocusAreas,
+  getHiringText,
 } from '../../../backend/services/reports/report';
 import useReady from '../../hooks/useReady';
 import { exportSectionsToPdf, sanitizeFileSegment } from '../../../utils/exportReport';
@@ -90,7 +96,25 @@ export default function Report() {
   const topStrengths = getTopStrengths(insights, results, snapshotTraits);
   const compactProfile = getCompactProfile(results.scores, insights);
   const condensedInsight = getCondensedInsight(archetype, insights, results, careerMatches);
-  const summaryTraits = snapshotTraits.filter((t) => t.key !== 'communication');
+
+  // ── HR 1-page summary data ──────────────────────────────────────────────
+  const bigFiveTraits = getBigFiveTraits(results.scores);
+  const workplaceReadiness = getWorkplaceReadiness(results.scores);
+  const hiringRecommendation = getHiringRecommendation(overallScore);
+  const preferenceIndicators = getPreferenceIndicators(results.scores, results.archetype);
+  const interviewFocusAreas = getInterviewFocusAreas(results.scores);
+  const hiringText = getHiringText(overallScore, archetype, results.scores);
+  const employabilityLevel =
+    overallScore >= 75 ? 'High' :
+    overallScore >= 60 ? 'Above Average' :
+    overallScore >= 45 ? 'Average' : 'Below Average';
+
+  // Combine archetype strengths + trait-derived extras for up to 5 highlights.
+  const namedTitles = new Set(insights.strengths.map((s) => s.title));
+  const personalityHighlights = [
+    ...insights.strengths,
+    ...topStrengths.filter((s) => !namedTitles.has(s.title)).map((s) => ({ emoji: s.emoji || '✦', title: s.title, desc: s.desc || '' })),
+  ].slice(0, 5);
 
   const assessmentDate = new Date().toLocaleDateString('en-US', { month: 'long', day: 'numeric', year: 'numeric' });
   const studentName = 'Explorer';
@@ -127,16 +151,24 @@ export default function Report() {
       await exportOnePageSummary({
         data: {
           studentName,
+          rollNumber: 'N/A',
+          college: 'N/A',
+          branch: 'N/A',
           assessmentDate,
-          archetype,
           overallScore,
-          snapshotTraits: summaryTraits,
-          strengths: topStrengths,
-          growthAreas: growthDetails,
+          employabilityLevel,
+          profileSummary: insights.summary,
+          bigFiveTraits,
+          personalityHighlights,
+          workplaceReadiness,
           careerMatches,
-          profile: compactProfile,
-          skills: insights.recommendedSkills,
-          insightLines: condensedInsight,
+          topStrengths,
+          developmentAreas: growthDetails,
+          preferenceIndicators,
+          interviewFocusAreas,
+          hiringRecommendation,
+          hiringText,
+          archetype,
         },
         fileName: `Student_Intelligence_Summary_${sanitizeFileSegment(studentName)}.pdf`,
       });

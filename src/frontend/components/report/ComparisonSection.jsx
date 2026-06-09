@@ -1,7 +1,7 @@
 import { motion } from 'framer-motion';
 import GlassCard from '../common/GlassCard';
 import SectionTitle from './SectionTitle';
-import { COMPARISON_META } from '../../../data/insights/insights';
+import { COMPARISON_META } from '../../../backend/insights/insights';
 
 export default function ComparisonSection({ scores, average }) {
   return (

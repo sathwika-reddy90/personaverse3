@@ -1,4 +1,4 @@
-import { TRAIT_LABELS } from '../../../data/questions/questions';
+import { TRAIT_LABELS } from '../../questions/questions';
 import { ARCHETYPE_TRAITS } from '../scoring/scoring';
 
 // `results.scores` stores creativity under the key `creative`, while the shared
@@ -236,6 +236,105 @@ export const getCondensedInsight = (archetype, insights, results, careerMatches)
     `Career paths like "${topCareer.title}" (${topCareer.match}% match) sit close to your natural wiring.`,
     `Pair "${insights.strengths[0].title}" with focused work on "${results.growthAreas[0]}" — that combination is where your next leap is waiting.`,
   ];
+};
+
+// ── 1-Page HR Summary helpers ────────────────────────────────────────────────
+
+export const getBigFiveTraits = (scores) => {
+  const openness = avg(scores.creative ?? 0, scores.introspection ?? 0);
+  const emotionalStability = avg(scores.discipline ?? 0, scores.empathy ?? 0);
+  const levelLabel = (s) => (s >= 70 ? 'High' : s >= 45 ? 'Moderate' : 'Developing');
+  return [
+    { key: 'openness', label: 'Openness', value: clamp(openness), level: levelLabel(openness) },
+    { key: 'conscientiousness', label: 'Conscientiousness', value: clamp(scores.discipline ?? 0), level: levelLabel(scores.discipline ?? 0) },
+    { key: 'extraversion', label: 'Extraversion', value: clamp(scores.social ?? 0), level: levelLabel(scores.social ?? 0) },
+    { key: 'agreeableness', label: 'Agreeableness', value: clamp(scores.empathy ?? 0), level: levelLabel(scores.empathy ?? 0) },
+    { key: 'emotionalStability', label: 'Emotional Stability', value: clamp(emotionalStability), level: levelLabel(emotionalStability) },
+  ];
+};
+
+const toStars = (score) => Math.max(1, Math.min(5, Math.round(((score ?? 0) / 100) * 5)));
+
+export const getWorkplaceReadiness = (scores) => [
+  { key: 'learningAgility', label: 'Learning Agility', stars: toStars(scores.introspection) },
+  { key: 'adaptability', label: 'Adaptability', stars: toStars(scores.risk) },
+  { key: 'initiative', label: 'Initiative', stars: toStars(scores.leadership) },
+  { key: 'accountability', label: 'Accountability', stars: toStars(scores.discipline) },
+  { key: 'teamwork', label: 'Teamwork', stars: toStars(avg(scores.social ?? 0, scores.empathy ?? 0)) },
+  { key: 'communication', label: 'Communication', stars: toStars(scores.empathy) },
+  { key: 'problemSolving', label: 'Problem Solving', stars: toStars(avg(scores.introspection ?? 0, scores.creative ?? 0)) },
+  { key: 'resilience', label: 'Resilience', stars: toStars(avg(scores.discipline ?? 0, scores.risk ?? 0)) },
+  { key: 'professionalism', label: 'Professionalism', stars: toStars(avg(scores.discipline ?? 0, scores.leadership ?? 0)) },
+];
+
+export const getHiringRecommendation = (overallScore) => {
+  if (overallScore >= 75) return { level: 'Strongly Recommended', color: '#16A34A', bgColor: '#F0FDF4', icon: '★' };
+  if (overallScore >= 60) return { level: 'Recommended', color: '#1D4ED8', bgColor: '#EFF6FF', icon: '✓' };
+  if (overallScore >= 45) return { level: 'Consider', color: '#D97706', bgColor: '#FFFBEB', icon: '◎' };
+  return { level: 'Development Required', color: '#DC2626', bgColor: '#FFF5F5', icon: '!' };
+};
+
+const MOTIVATION_MAP = {
+  founder: 'Achievement & Impact', creative: 'Creative Expression', butterfly: 'Social Connection',
+  thinker: 'Intellectual Mastery', chaos: 'Freedom & Novelty', growth: 'Growth & Self-Improvement',
+  visionbuilder: 'Vision & Legacy', communityleader: 'Service & Belonging',
+};
+const STRESS_MAP = {
+  founder: 'Lack of autonomy', creative: 'Creative constraints', butterfly: 'Isolation or conflict',
+  thinker: 'Rushed decisions', chaos: 'Rigid routine', growth: 'Stagnation',
+  visionbuilder: 'Disrupted plans', communityleader: 'Broken trust',
+};
+
+export const getPreferenceIndicators = (scores, archetypeId) => [
+  { label: 'Work Environment', value: tier(scores.social ?? 0, 'Quiet & Focused', 'Flexible & Adaptive', 'Collaborative & Dynamic') },
+  { label: 'Leadership Style', value: tier(scores.leadership ?? 0, 'Lead by Example', 'Situational Leader', 'Front-Footed Leader') },
+  { label: 'Communication Style', value: tier(scores.empathy ?? 0, 'Thoughtful & Reserved', 'Balanced & Adaptive', 'Warm & Expressive') },
+  { label: 'Decision Making', value: tier(scores.discipline ?? 0, 'Intuitive & Flexible', 'Balanced & Contextual', 'Structured & Systematic') },
+  { label: 'Motivation Drivers', value: MOTIVATION_MAP[archetypeId] || 'Growth & Learning' },
+  { label: 'Stress Triggers', value: STRESS_MAP[archetypeId] || 'Inconsistency' },
+];
+
+export const getInterviewFocusAreas = (scores) => [
+  {
+    title: 'Initiative & Ownership',
+    note: (scores.leadership ?? 0) >= 60
+      ? 'Strong ownership mindset. Explore self-directed projects and autonomous decision-making.'
+      : 'Ask for specific examples of taking initiative beyond assigned responsibilities.',
+  },
+  {
+    title: 'Handling Pressure',
+    note: (scores.discipline ?? 0) >= 60
+      ? 'Disciplined stress management. Explore prioritization under competing deadlines.'
+      : 'Probe coping strategies and performance consistency under high-stakes conditions.',
+  },
+  {
+    title: 'Problem Solving',
+    note: (scores.introspection ?? 0) >= 60
+      ? 'Strong analytical tendency. Explore structured reasoning in ambiguous situations.'
+      : 'Use case-based questions to assess structured vs. intuitive problem-solving.',
+  },
+  {
+    title: 'Learning Agility',
+    note: (scores.introspection ?? 0) >= 60
+      ? 'High curiosity. Ask about independently acquired skills and self-initiated learning.'
+      : 'Explore openness to feedback and how past mistakes shaped growth.',
+  },
+];
+
+export const getHiringText = (overallScore, archetype, scores) => {
+  const rec = getHiringRecommendation(overallScore);
+  const topEntry = Object.entries(scores).sort((a, b) => b[1] - a[1])[0];
+  const traitName = SCORE_LABELS[topEntry[0]] || topEntry[0];
+  const readiness = overallScore >= 75 ? 'exceptional' : overallScore >= 60 ? 'strong' : overallScore >= 45 ? 'developing' : 'early-stage';
+  const roleNote = (scores.leadership ?? 0) >= 60
+    ? 'roles requiring leadership, initiative, and ownership'
+    : (scores.creative ?? 0) >= 60
+    ? 'roles requiring creativity, innovation, and problem-solving'
+    : 'roles requiring collaboration, analysis, and structured execution';
+  const closing = overallScore >= 65
+    ? 'This candidate demonstrates the readiness indicators expected for the applied role and is recommended for the next stage of the selection process.'
+    : 'With targeted coaching and structured development, this candidate has the potential to meet the requirements of the applied role.';
+  return `This candidate presents a ${readiness} employability profile with a ${archetype.name} personality archetype. Their standout trait — ${traitName} — positions them well for ${roleNote}. ${closing}`;
 };
 
 export const getFinalSummary = (archetype, insights, results, careerMatches) => {

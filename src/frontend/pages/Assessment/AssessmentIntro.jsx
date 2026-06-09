@@ -7,9 +7,14 @@ import MagneticButton from '../../components/common/MagneticButton';
 import FloatingBlobs from '../../components/common/FloatingBlobs';
 import { SkeletonRow } from '../../components/common/Skeleton';
 import useReady from '../../hooks/useReady';
-import { GROUPS } from '../../../data/questions/questions';
+import { questions, GROUPS } from '../../../backend/questions/questions';
 
-const SECTIONS = GROUPS.map((g) => ({ ...g, count: 5 }));
+// Question count per group — derived dynamically so adding questions never
+// requires touching this file.
+const SECTIONS = GROUPS.map((g) => ({
+  ...g,
+  count: questions.filter((q) => q.group === g.id).length,
+}));
 
 export default function AssessmentIntro() {
   const navigate = useNavigate();
@@ -20,10 +25,10 @@ export default function AssessmentIntro() {
       <div className="relative px-6 pt-12 pb-4 overflow-hidden">
         <FloatingBlobs className="opacity-50" />
         <div className="relative z-10">
-          <p className="text-xs font-semibold text-ink/40 uppercase tracking-widest mb-1">~5 minute deep-dive</p>
+          <p className="text-xs font-semibold text-ink/40 uppercase tracking-widest mb-1">~10 minute deep-dive</p>
           <h1 className="font-display font-extrabold text-2xl text-ink mb-2">Discover the real you 🧬</h1>
           <p className="text-sm text-ink/55 leading-relaxed">
-            25 quick, playful prompts across 5 totally different formats. No boring forms — just vibes and instincts.
+            {questions.length} quick prompts across {GROUPS.length} different formats. No boring forms — just vibes and instincts.
           </p>
         </div>
       </div>
@@ -31,7 +36,7 @@ export default function AssessmentIntro() {
       <div className="flex-1 overflow-y-auto px-6 pb-32 space-y-3">
         {!ready ? (
           <div className="space-y-3 pt-1">
-            {Array.from({ length: 5 }).map((_, i) => (
+            {Array.from({ length: GROUPS.length }).map((_, i) => (
               <SkeletonRow key={i} />
             ))}
           </div>
@@ -45,7 +50,9 @@ export default function AssessmentIntro() {
                 transition={{ delay: i * 0.08, duration: 0.45, ease: [0.22, 1, 0.36, 1] }}
               >
                 <GlassCard className="p-4 flex items-center gap-4">
-                  <div className={`h-12 w-12 shrink-0 rounded-2xl bg-gradient-to-br ${s.color} grid place-items-center text-2xl shadow-soft`}>
+                  <div
+                    className={`h-12 w-12 shrink-0 rounded-2xl bg-gradient-to-br ${s.color} grid place-items-center text-2xl shadow-soft`}
+                  >
                     {s.emoji}
                   </div>
                   <div className="flex-1 min-w-0">

@@ -1,4 +1,4 @@
-import { TRAIT_LABELS } from '../../../data/questions/questions';
+import { TRAIT_LABELS } from '../questions/questions';
 import { ARCHETYPE_TRAITS } from '../scoring/resultEngine';
 
 // `results.scores` stores creativity under the key `creative`, while the shared

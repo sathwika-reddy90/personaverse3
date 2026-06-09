@@ -1,14 +1,14 @@
-import { TRAIT_LABELS } from '../../../data/questions/questions';
+import { TRAIT_LABELS } from '../../questions/questions';
 
 export const ARCHETYPE_TRAITS = {
-  founder: ['leadership', 'risk'],
-  creative: ['creativity', 'introspection'],
-  butterfly: ['social', 'empathy'],
-  thinker: ['introspection', 'discipline'],
-  chaos: ['risk', 'creativity'],
-  growth: ['discipline', 'introspection'],
-  visionbuilder: ['leadership', 'discipline'],
-  communityleader: ['empathy', 'leadership'],
+  founder:        ['leadership', 'risk'],
+  creative:       ['creativity', 'introspection'],
+  butterfly:      ['social', 'empathy'],
+  thinker:        ['introspection', 'discipline'],
+  chaos:          ['risk', 'creativity'],
+  growth:         ['discipline', 'introspection'],
+  visionbuilder:  ['leadership', 'discipline'],
+  communityleader:['empathy', 'leadership'],
 };
 
 export function computeResults(traitScores) {
@@ -27,31 +27,28 @@ export function computeResults(traitScores) {
   });
 
   const sorted = [...entries].sort((a, b) => b[1] - a[1]);
-  const growthAreas = sorted.slice(-2).map(([k]) => TRAIT_LABELS[k]);
-  const topTraits = sorted.slice(0, 2).map(([k]) => TRAIT_LABELS[k]);
+  const growthAreas = sorted.slice(-2).map(([k]) => TRAIT_LABELS[k] || k);
+  const topTraits  = sorted.slice(0, 2).map(([k]) => TRAIT_LABELS[k] || k);
 
-  return {
-    archetype: bestArchetype,
-    scores: {
-      social: pct('social'),
-      discipline: pct('discipline'),
-      creative: pct('creativity'),
-      leadership: pct('leadership'),
-      empathy: pct('empathy'),
-      introspection: pct('introspection'),
-      risk: pct('risk'),
-    },
-    growthAreas,
-    topTraits,
-  };
+  // Build scores dynamically from whatever traits came in.
+  const scores = {};
+  entries.forEach(([key]) => { scores[key] = pct(key); });
+
+  // Backward-compat alias: report.js reads scores.creative, not scores.creativity.
+  if ('creativity' in scores) {
+    scores.creative = scores.creativity;
+    delete scores.creativity;
+  }
+
+  return { archetype: bestArchetype, scores, growthAreas, topTraits };
 }
 
 export const DETECTION_MESSAGES = {
-  leadership: { emoji: '🔥', label: 'Leadership detected' },
-  empathy: { emoji: '💜', label: 'Empathy rising' },
-  social: { emoji: '🌟', label: 'Social energy increasing' },
-  discipline: { emoji: '🎯', label: 'Discipline detected' },
-  creativity: { emoji: '✨', label: 'Creativity detected' },
+  leadership:    { emoji: '🔥', label: 'Leadership detected' },
+  empathy:       { emoji: '💜', label: 'Empathy rising' },
+  social:        { emoji: '🌟', label: 'Social energy increasing' },
+  discipline:    { emoji: '🎯', label: 'Discipline detected' },
+  creativity:    { emoji: '✨', label: 'Creativity detected' },
   introspection: { emoji: '🧠', label: 'Deep thinking detected' },
-  risk: { emoji: '⚡', label: 'Risk appetite spiking' },
+  risk:          { emoji: '⚡', label: 'Risk appetite spiking' },
 };

@@ -1,361 +1,473 @@
-import { Document, Page, View, Text, StyleSheet, Svg, Defs, LinearGradient, Stop, Rect, Circle, G } from '@react-pdf/renderer';
+// OnePageSummaryDocument.jsx
+// React + inline-style HR report component, captured by html2canvas → A4 PDF.
+// Rendered off-screen in Report/index.jsx; no Tailwind classes needed here
+// because html2canvas reads computed styles, and inline styles are always safe.
 
-// @react-pdf/renderer renders straight to PDF primitives (no DOM/canvas), so every
-// color here is an explicit hex from the PersonaNova palette — Tailwind classes and
-// CSS variables don't reach this tree.
-const COLORS = {
-  primary: '#3A0CA3',
-  support: '#22D3C5',
-  accent: '#FF4D6D',
-  highlight: '#FFC868',
-  surface: '#F0F4F8',
-  ink: '#1A1530',
-  inkSoft: '#6B6580',
-  inkFaint: '#9B96AC',
-  white: '#FFFFFF',
-  card: '#FFFFFF',
-  track: '#E3E1ED',
+const C = {
+  navyDark: '#1B3A6B',
+  navy: '#1D4ED8',
+  blue: '#2563EB',
+  blueSoft: '#EFF6FF',
+  blueLight: '#DBEAFE',
+  text: '#1E293B',
+  textMuted: '#64748B',
+  textFaint: '#94A3B8',
+  bg: '#FFFFFF',
+  bgLight: '#F8FAFC',
+  border: '#E2E8F0',
+  green: '#16A34A',
+  greenBg: '#F0FDF4',
+  greenLight: '#DCFCE7',
+  orange: '#D97706',
+  orangeBg: '#FFFBEB',
+  orangeLight: '#FEF3C7',
+  red: '#DC2626',
+  redBg: '#FFF5F5',
+  purple: '#7C3AED',
+  teal: '#0D9488',
 };
 
-const PRIORITY_COLORS = {
-  High: COLORS.accent,
-  Medium: COLORS.highlight,
-  Low: COLORS.support,
-};
+const BIG5_COLORS = [C.purple, C.blue, C.teal, C.orange, C.red];
 
-const ABS_FILL = { position: 'absolute', top: 0, left: 0, right: 0, bottom: 0 };
+// ─── Primitive sub-components ───────────────────────────────────────────────
 
-const styles = StyleSheet.create({
-  page: {
-    backgroundColor: COLORS.surface,
-    padding: 20,
-    fontFamily: 'Helvetica',
-    color: COLORS.ink,
-  },
-
-  // ── Header band ────────────────────────────────────────────
-  heroPanel: { borderRadius: 14, marginBottom: 9, overflow: 'hidden' },
-  heroInner: { padding: 14, position: 'relative' },
-  heroTopRow: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center' },
-  brandKicker: { fontSize: 7, letterSpacing: 2.5, color: 'rgba(255,255,255,0.65)', fontFamily: 'Helvetica-Bold', marginBottom: 4 },
-  heroTitle: { fontSize: 18, color: COLORS.white, fontFamily: 'Helvetica-Bold' },
-  heroMetaRow: { flexDirection: 'row', marginTop: 12, gap: 8 },
-  heroChip: { backgroundColor: 'rgba(255,255,255,0.14)', borderRadius: 8, paddingVertical: 6, paddingHorizontal: 10, flex: 1 },
-  heroChipLabel: { fontSize: 6, letterSpacing: 1.4, color: 'rgba(255,255,255,0.6)', fontFamily: 'Helvetica-Bold', marginBottom: 2 },
-  heroChipValue: { fontSize: 9, color: COLORS.white, fontFamily: 'Helvetica-Bold' },
-
-  scoreRingWrap: { width: 64, height: 64, alignItems: 'center', justifyContent: 'center' },
-  scoreRingNumber: { position: 'absolute', fontSize: 16, color: COLORS.white, fontFamily: 'Helvetica-Bold' },
-  scoreRingLabel: { fontSize: 5.5, letterSpacing: 1, color: 'rgba(255,255,255,0.7)', fontFamily: 'Helvetica-Bold', marginTop: 2, textAlign: 'center' },
-  scoreRingCol: { alignItems: 'center' },
-
-  // ── Generic section frame ──────────────────────────────────
-  row: { flexDirection: 'row', gap: 10, marginBottom: 9 },
-  col: { flex: 1 },
-  card: { backgroundColor: COLORS.card, borderRadius: 12, padding: 10 },
-  sectionTitleRow: { flexDirection: 'row', alignItems: 'center', marginBottom: 7 },
-  sectionAccent: { width: 3, height: 10, borderRadius: 2, marginRight: 6 },
-  sectionTitle: { fontSize: 9, letterSpacing: 1.2, fontFamily: 'Helvetica-Bold', color: COLORS.ink, textTransform: 'uppercase' },
-
-  // ── Personality snapshot ───────────────────────────────────
-  traitGrid: { flexDirection: 'row', flexWrap: 'wrap', gap: 0 },
-  traitItem: { width: '50%', marginBottom: 6, paddingRight: 8 },
-  traitLabelRow: { flexDirection: 'row', justifyContent: 'space-between', marginBottom: 3 },
-  traitLabel: { fontSize: 7, fontFamily: 'Helvetica-Bold', color: COLORS.ink },
-  traitValue: { fontSize: 7, fontFamily: 'Helvetica-Bold', color: COLORS.primary },
-  track: { height: 4.5, borderRadius: 3, backgroundColor: COLORS.track, overflow: 'hidden' },
-  fill: { height: 4.5, borderRadius: 3 },
-
-  // ── Archetype card ─────────────────────────────────────────
-  archCard: { borderRadius: 12, padding: 14, flex: 1, position: 'relative', overflow: 'hidden' },
-  archKicker: { fontSize: 6.5, letterSpacing: 1.8, color: 'rgba(255,255,255,0.65)', fontFamily: 'Helvetica-Bold', marginBottom: 5 },
-  archName: { fontSize: 14, color: COLORS.white, fontFamily: 'Helvetica-Bold', marginBottom: 6 },
-  archBlurb: { fontSize: 7.5, lineHeight: 1.5, color: 'rgba(255,255,255,0.88)', marginBottom: 10 },
-  archTagRow: { flexDirection: 'row', flexWrap: 'wrap', gap: 5 },
-  archTag: { fontSize: 6, fontFamily: 'Helvetica-Bold', color: COLORS.white, backgroundColor: 'rgba(255,255,255,0.18)', borderRadius: 8, paddingVertical: 4, paddingHorizontal: 8 },
-
-  // ── Strength chips ─────────────────────────────────────────
-  strengthGrid: { flexDirection: 'row', flexWrap: 'wrap', gap: 6 },
-  strengthChip: { width: '48%', flexDirection: 'row', alignItems: 'center', backgroundColor: '#F6F4FB', borderRadius: 10, paddingVertical: 7, paddingHorizontal: 8, marginBottom: 6 },
-  strengthDot: { width: 16, height: 16, borderRadius: 8, marginRight: 7, alignItems: 'center', justifyContent: 'center' },
-  strengthDotText: { fontSize: 7, color: COLORS.white, fontFamily: 'Helvetica-Bold' },
-  strengthChipText: { fontSize: 7, fontFamily: 'Helvetica-Bold', color: COLORS.ink, flex: 1 },
-
-  // ── Growth areas ───────────────────────────────────────────
-  growthItem: { borderRadius: 10, backgroundColor: '#F6F4FB', padding: 9, marginBottom: 7 },
-  growthTopRow: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', marginBottom: 3 },
-  growthLabel: { fontSize: 8, fontFamily: 'Helvetica-Bold', color: COLORS.ink },
-  priorityChip: { fontSize: 5.5, fontFamily: 'Helvetica-Bold', color: COLORS.white, borderRadius: 7, paddingVertical: 2.5, paddingHorizontal: 6 },
-  growthDesc: { fontSize: 6.5, lineHeight: 1.4, color: COLORS.inkSoft },
-
-  // ── Career matches ─────────────────────────────────────────
-  careerItem: { marginBottom: 8 },
-  careerTopRow: { flexDirection: 'row', justifyContent: 'space-between', marginBottom: 3 },
-  careerTitle: { fontSize: 7.5, fontFamily: 'Helvetica-Bold', color: COLORS.ink },
-  careerPercent: { fontSize: 7.5, fontFamily: 'Helvetica-Bold', color: COLORS.primary },
-
-  // ── Learning profile ───────────────────────────────────────
-  profileRow: { flexDirection: 'row', justifyContent: 'space-between', marginBottom: 7, paddingBottom: 7, borderBottomWidth: 1, borderBottomColor: '#E7E4F1' },
-  profileLabel: { fontSize: 6.5, letterSpacing: 0.6, color: COLORS.inkFaint, fontFamily: 'Helvetica-Bold', textTransform: 'uppercase', width: '42%' },
-  profileValue: { fontSize: 7.5, color: COLORS.ink, fontFamily: 'Helvetica-Bold', width: '58%', textAlign: 'right', lineHeight: 1.35 },
-
-  skillsLabel: { fontSize: 6.5, letterSpacing: 0.6, color: COLORS.inkFaint, fontFamily: 'Helvetica-Bold', textTransform: 'uppercase', marginBottom: 6 },
-  skillBadgeRow: { flexDirection: 'row', flexWrap: 'wrap', gap: 5 },
-  skillBadge: { fontSize: 6, fontFamily: 'Helvetica-Bold', color: COLORS.primary, backgroundColor: '#EAE3F8', borderRadius: 8, paddingVertical: 4, paddingHorizontal: 8 },
-
-  // ── Final insight ──────────────────────────────────────────
-  insightPanel: { borderRadius: 14, overflow: 'hidden' },
-  insightInner: { padding: 11 },
-  insightKicker: { fontSize: 7, letterSpacing: 2, color: 'rgba(255,255,255,0.65)', fontFamily: 'Helvetica-Bold', marginBottom: 5 },
-  insightLine: { fontSize: 7.5, lineHeight: 1.45, color: 'rgba(255,255,255,0.95)', marginBottom: 2 },
-
-  footer: { marginTop: 4, textAlign: 'center', fontSize: 6, color: COLORS.inkFaint, letterSpacing: 1 },
-});
-
-// Renders an absolutely-positioned diagonal gradient rect behind its children —
-// the PDF-primitive equivalent of `linear-gradient(135deg, from, to)`.
-function GradientPanel({ id, from, to, style, innerStyle, children }) {
-  return (
-    <View style={style}>
-      <View style={ABS_FILL}>
-        <Svg width="100%" height="100%" viewBox="0 0 100 100" preserveAspectRatio="none">
-          <Defs>
-            <LinearGradient id={id} x1="0%" y1="0%" x2="100%" y2="100%">
-              <Stop offset="0%" stopColor={from} />
-              <Stop offset="100%" stopColor={to} />
-            </LinearGradient>
-          </Defs>
-          <Rect x="0" y="0" width="100" height="100" fill={`url(#${id})`} />
-        </Svg>
-      </View>
-      <View style={innerStyle}>{children}</View>
-    </View>
-  );
-}
-
-// A small radial progress ring built from two stacked SVG circles (track + arc),
-// rotated so the arc starts at 12 o'clock — the "radial chart" for the hero score.
-function ScoreRing({ value, label }) {
-  const size = 64;
-  const stroke = 5;
+function ScoreRing({ value, size = 86 }) {
+  const stroke = 7;
   const r = (size - stroke) / 2;
-  const c = 2 * Math.PI * r;
-  const filled = (Math.max(0, Math.min(100, value)) / 100) * c;
+  const circ = 2 * Math.PI * r;
+  const filled = (Math.max(0, Math.min(100, value)) / 100) * circ;
+  const ringColor = value >= 75 ? C.green : value >= 60 ? C.blue : value >= 45 ? C.orange : C.red;
   return (
-    <View style={styles.scoreRingCol}>
-      <View style={styles.scoreRingWrap}>
-        <Svg width={size} height={size} viewBox={`0 0 ${size} ${size}`}>
-          <G rotation={-90} origin={`${size / 2}, ${size / 2}`}>
-            <Circle cx={size / 2} cy={size / 2} r={r} stroke="rgba(255,255,255,0.28)" strokeWidth={stroke} fill="none" />
-            <Circle
-              cx={size / 2}
-              cy={size / 2}
-              r={r}
-              stroke={COLORS.white}
-              strokeWidth={stroke}
-              strokeLinecap="round"
-              strokeDasharray={`${filled} ${c}`}
-              fill="none"
-            />
-          </G>
-        </Svg>
-        <Text style={styles.scoreRingNumber}>{value}</Text>
-      </View>
-      <Text style={styles.scoreRingLabel}>{label}</Text>
-    </View>
+    <div style={{ position: 'relative', width: size, height: size, flexShrink: 0 }}>
+      <svg
+        width={size}
+        height={size}
+        viewBox={`0 0 ${size} ${size}`}
+        style={{ transform: 'rotate(-90deg)', display: 'block' }}
+      >
+        <circle cx={size / 2} cy={size / 2} r={r} stroke="#E2E8F0" strokeWidth={stroke} fill="none" />
+        <circle
+          cx={size / 2}
+          cy={size / 2}
+          r={r}
+          stroke={ringColor}
+          strokeWidth={stroke}
+          fill="none"
+          strokeLinecap="round"
+          strokeDasharray={`${filled} ${circ}`}
+        />
+      </svg>
+      <div style={{
+        position: 'absolute', inset: 0,
+        display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center',
+      }}>
+        <span style={{ fontSize: 20, fontWeight: 700, color: C.text, lineHeight: 1 }}>{value}</span>
+        <span style={{ fontSize: 7, color: C.textMuted, marginTop: 2, letterSpacing: '0.04em' }}>/ 100</span>
+      </div>
+    </div>
   );
 }
 
-function SectionTitle({ children, color = COLORS.primary }) {
+function Stars({ count, max = 5 }) {
   return (
-    <View style={styles.sectionTitleRow}>
-      <View style={[styles.sectionAccent, { backgroundColor: color }]} />
-      <Text style={styles.sectionTitle}>{children}</Text>
-    </View>
+    <div style={{ display: 'flex', gap: 1 }}>
+      {Array.from({ length: max }, (_, i) => (
+        <span key={i} style={{ fontSize: 9, color: i < count ? '#F59E0B' : '#D1D5DB', lineHeight: 1 }}>★</span>
+      ))}
+    </div>
   );
 }
 
-function ProgressBar({ value, color }) {
+function HBar({ value, color, height = 5 }) {
   return (
-    <View style={styles.track}>
-      <View style={[styles.fill, { width: `${Math.max(4, Math.min(100, value))}%`, backgroundColor: color }]} />
-    </View>
+    <div style={{ height, backgroundColor: C.border, borderRadius: height / 2, overflow: 'hidden' }}>
+      <div style={{ height: '100%', width: `${Math.max(3, Math.min(100, value))}%`, backgroundColor: color, borderRadius: height / 2 }} />
+    </div>
   );
 }
 
-const TRAIT_BAR_COLORS = [COLORS.primary, COLORS.support, COLORS.accent, COLORS.highlight];
+function SecHead({ label, accent = C.blue }) {
+  return (
+    <div style={{ display: 'flex', alignItems: 'center', gap: 5, marginBottom: 8 }}>
+      <div style={{ width: 3, height: 13, backgroundColor: accent, borderRadius: 2, flexShrink: 0 }} />
+      <span style={{ fontSize: 8.5, fontWeight: 700, color: C.text, textTransform: 'uppercase', letterSpacing: '0.09em' }}>
+        {label}
+      </span>
+    </div>
+  );
+}
+
+function LevelBadge({ level }) {
+  const map = {
+    High: { bg: C.greenLight, color: C.green },
+    Moderate: { bg: C.blueLight, color: C.blue },
+    Developing: { bg: C.orangeLight, color: C.orange },
+  };
+  const s = map[level] || map.Developing;
+  return (
+    <span style={{
+      fontSize: 6.5, fontWeight: 700, padding: '1.5px 5px', borderRadius: 8,
+      backgroundColor: s.bg, color: s.color, letterSpacing: '0.04em',
+    }}>
+      {level}
+    </span>
+  );
+}
+
+// ─── Main component ──────────────────────────────────────────────────────────
 
 export default function OnePageSummaryDocument({
-  studentName,
-  assessmentDate,
-  archetype,
-  overallScore,
-  snapshotTraits,
-  strengths,
-  growthAreas,
-  careerMatches,
-  profile,
-  skills,
-  insightLines,
+  studentName = 'Student',
+  rollNumber = 'N/A',
+  college = 'N/A',
+  branch = 'N/A',
+  assessmentDate = '',
+  overallScore = 0,
+  employabilityLevel = 'Average',
+  profileSummary = '',
+  bigFiveTraits = [],
+  personalityHighlights = [],
+  workplaceReadiness = [],
+  careerMatches = [],
+  topStrengths = [],
+  developmentAreas = [],
+  preferenceIndicators = [],
+  interviewFocusAreas = [],
+  hiringRecommendation = { level: 'Recommended', color: C.blue, bgColor: C.blueSoft, icon: '✓' },
+  hiringText = '',
+  archetype = { name: '' },
 }) {
+  const rec = hiringRecommendation;
+
   return (
-    <Document title={`Student Intelligence Summary — ${studentName}`} author="PersonaNova">
-      <Page size="A4" style={styles.page}>
-        {/* Section 1 — Header */}
-        <GradientPanel
-          id="heroGrad"
-          from={COLORS.primary}
-          to={COLORS.support}
-          style={styles.heroPanel}
-          innerStyle={styles.heroInner}
-        >
-          <View style={styles.heroTopRow}>
-            <View>
-              <Text style={styles.brandKicker}>PERSONANOVA · STUDENT INTELLIGENCE SUMMARY</Text>
-              <Text style={styles.heroTitle}>One-Page Executive Summary</Text>
-            </View>
-            <ScoreRing value={overallScore} label="INTELLIGENCE SCORE" />
-          </View>
-          <View style={styles.heroMetaRow}>
-            <View style={styles.heroChip}>
-              <Text style={styles.heroChipLabel}>STUDENT</Text>
-              <Text style={styles.heroChipValue}>{studentName}</Text>
-            </View>
-            <View style={styles.heroChip}>
-              <Text style={styles.heroChipLabel}>ASSESSMENT DATE</Text>
-              <Text style={styles.heroChipValue}>{assessmentDate}</Text>
-            </View>
-            <View style={styles.heroChip}>
-              <Text style={styles.heroChipLabel}>PRIMARY ARCHETYPE</Text>
-              <Text style={styles.heroChipValue}>{archetype.name}</Text>
-            </View>
-            <View style={styles.heroChip}>
-              <Text style={styles.heroChipLabel}>OVERALL SCORE</Text>
-              <Text style={styles.heroChipValue}>{overallScore} / 100</Text>
-            </View>
-          </View>
-        </GradientPanel>
+    <div style={{
+      width: 794,
+      backgroundColor: C.bg,
+      fontFamily: "'Arial', 'Helvetica Neue', Helvetica, sans-serif",
+      color: C.text,
+      fontSize: 9,
+      lineHeight: 1.4,
+    }}>
 
-        {/* Section 2 — Personality Snapshot  +  Section 3 — Primary Archetype */}
-        <View style={styles.row}>
-          <View style={[styles.card, { flex: 1.35 }]}>
-            <SectionTitle>Personality Snapshot</SectionTitle>
-            <View style={styles.traitGrid}>
-              {snapshotTraits.map((t, i) => (
-                <View key={t.key} style={styles.traitItem}>
-                  <View style={styles.traitLabelRow}>
-                    <Text style={styles.traitLabel}>{t.label}</Text>
-                    <Text style={styles.traitValue}>{t.value}</Text>
-                  </View>
-                  <ProgressBar value={t.value} color={TRAIT_BAR_COLORS[i % TRAIT_BAR_COLORS.length]} />
-                </View>
-              ))}
-            </View>
-          </View>
+      {/* ══ SECTION 1: HEADER ══════════════════════════════════════════════════ */}
+      <div style={{
+        backgroundColor: C.navyDark,
+        padding: '13px 20px',
+        display: 'flex',
+        justifyContent: 'space-between',
+        alignItems: 'center',
+      }}>
+        <div>
+          <div style={{ fontSize: 17, fontWeight: 700, color: '#FFFFFF', letterSpacing: '0.04em', lineHeight: 1.2 }}>
+            PersonaVerse
+          </div>
+          <div style={{ fontSize: 12, fontWeight: 700, color: '#FFFFFF', marginTop: 3, letterSpacing: '0.06em' }}>
+            STUDENT INTELLIGENCE REPORT
+          </div>
+          <div style={{ fontSize: 8, color: 'rgba(255,255,255,0.65)', marginTop: 2 }}>
+            Personality Assessment &amp; Employability Report
+          </div>
+        </div>
+        <div style={{ textAlign: 'right' }}>
+          <div style={{ fontSize: 7, color: 'rgba(255,255,255,0.55)', textTransform: 'uppercase', letterSpacing: '0.1em' }}>Report Date</div>
+          <div style={{ fontSize: 9.5, color: '#FFFFFF', fontWeight: 600, marginTop: 2 }}>{assessmentDate}</div>
+          <div style={{ fontSize: 7, color: 'rgba(255,255,255,0.55)', marginTop: 4, textTransform: 'uppercase', letterSpacing: '0.1em' }}>Confidential</div>
+        </div>
+      </div>
 
-          <GradientPanel
-            id="archGrad"
-            from={COLORS.primary}
-            to={COLORS.accent}
-            style={[styles.archCard, { flex: 1 }]}
-            innerStyle={{ position: 'relative' }}
-          >
-            <Text style={styles.archKicker}>PRIMARY ARCHETYPE</Text>
-            <Text style={styles.archName}>{archetype.name}</Text>
-            <Text style={styles.archBlurb}>{archetype.blurb}</Text>
-            <View style={styles.archTagRow}>
-              {strengths.slice(0, 3).map((s) => (
-                <Text key={s.title} style={styles.archTag}>{s.title}</Text>
-              ))}
-            </View>
-          </GradientPanel>
-        </View>
+      {/* ══ SECTION 2: PROFILE OVERVIEW ════════════════════════════════════════ */}
+      <div style={{ display: 'flex', borderBottom: `1px solid ${C.border}` }}>
 
-        {/* Section 4 — Top Strengths  +  Section 5 — Growth Areas */}
-        <View style={styles.row}>
-          <View style={[styles.card, styles.col]}>
-            <SectionTitle color={COLORS.support}>Top Strengths</SectionTitle>
-            <View style={styles.strengthGrid}>
-              {strengths.map((s, i) => (
-                <View key={s.title} style={styles.strengthChip}>
-                  <View style={[styles.strengthDot, { backgroundColor: TRAIT_BAR_COLORS[i % TRAIT_BAR_COLORS.length] }]}>
-                    <Text style={styles.strengthDotText}>{i + 1}</Text>
-                  </View>
-                  <Text style={styles.strengthChipText}>{s.title}</Text>
-                </View>
-              ))}
-            </View>
-          </View>
-
-          <View style={[styles.card, styles.col]}>
-            <SectionTitle color={COLORS.accent}>Growth Areas</SectionTitle>
-            {growthAreas.map((g) => (
-              <View key={g.key} style={styles.growthItem}>
-                <View style={styles.growthTopRow}>
-                  <Text style={styles.growthLabel}>{g.label}</Text>
-                  <Text style={[styles.priorityChip, { backgroundColor: PRIORITY_COLORS[g.priority] || COLORS.support }]}>
-                    {g.priority.toUpperCase()} PRIORITY
-                  </Text>
-                </View>
-                <Text style={styles.growthDesc}>{g.action}</Text>
-              </View>
-            ))}
-          </View>
-        </View>
-
-        {/* Section 6 — Career Matches  +  Section 7/8 — Learning Profile & Skills */}
-        <View style={styles.row}>
-          <View style={[styles.card, styles.col]}>
-            <SectionTitle>Career Matches</SectionTitle>
-            {careerMatches.map((c) => (
-              <View key={c.title} style={styles.careerItem}>
-                <View style={styles.careerTopRow}>
-                  <Text style={styles.careerTitle}>{c.title}</Text>
-                  <Text style={styles.careerPercent}>{c.match}%</Text>
-                </View>
-                <ProgressBar value={c.match} color={COLORS.primary} />
-              </View>
-            ))}
-          </View>
-
-          <View style={[styles.card, styles.col]}>
-            <SectionTitle color={COLORS.highlight}>Learning Profile</SectionTitle>
-            <View style={styles.profileRow}>
-              <Text style={styles.profileLabel}>Learning Style</Text>
-              <Text style={styles.profileValue}>{profile.learningStyle}</Text>
-            </View>
-            <View style={styles.profileRow}>
-              <Text style={styles.profileLabel}>Social Style</Text>
-              <Text style={styles.profileValue}>{profile.socialStyle}</Text>
-            </View>
-            <View style={styles.profileRow}>
-              <Text style={styles.profileLabel}>Best Study Method</Text>
-              <Text style={styles.profileValue}>{profile.studyMethod}</Text>
-            </View>
-            <View style={[styles.profileRow, { borderBottomWidth: 0, marginBottom: 10, paddingBottom: 0 }]}>
-              <Text style={styles.profileLabel}>Preferred Environment</Text>
-              <Text style={styles.profileValue}>{profile.environment}</Text>
-            </View>
-
-            <Text style={styles.skillsLabel}>Recommended Skills</Text>
-            <View style={styles.skillBadgeRow}>
-              {skills.map((s) => (
-                <Text key={s} style={styles.skillBadge}>{s}</Text>
-              ))}
-            </View>
-          </View>
-        </View>
-
-        {/* Section 9 — Final Insight */}
-        <GradientPanel id="insightGrad" from={COLORS.ink} to={COLORS.primary} style={styles.insightPanel} innerStyle={styles.insightInner}>
-          <Text style={styles.insightKicker}>FINAL INSIGHT</Text>
-          {insightLines.map((line, i) => (
-            <Text key={i} style={styles.insightLine}>{line}</Text>
+        {/* Left — student info */}
+        <div style={{
+          width: '27%',
+          backgroundColor: C.bgLight,
+          padding: '12px 14px',
+          borderRight: `1px solid ${C.border}`,
+          flexShrink: 0,
+        }}>
+          <div style={{
+            width: 48, height: 48, borderRadius: '50%',
+            backgroundColor: '#CBD5E1',
+            display: 'flex', alignItems: 'center', justifyContent: 'center',
+            marginBottom: 9, fontSize: 22, color: '#64748B',
+          }}>
+            👤
+          </div>
+          <div style={{ fontSize: 12, fontWeight: 700, color: C.text, marginBottom: 7 }}>{studentName}</div>
+          {[
+            ['Roll Number', rollNumber],
+            ['College', college],
+            ['Branch', branch],
+            ['Assessment Date', assessmentDate],
+          ].map(([lbl, val]) => (
+            <div key={lbl} style={{ marginBottom: 5 }}>
+              <div style={{ fontSize: 6.5, color: C.textFaint, textTransform: 'uppercase', letterSpacing: '0.08em', fontWeight: 700 }}>{lbl}</div>
+              <div style={{ fontSize: 8.5, color: C.text, fontWeight: 500, marginTop: 1 }}>{val}</div>
+            </div>
           ))}
-        </GradientPanel>
+        </div>
 
-        <Text style={styles.footer}>GENERATED BY PERSONANOVA · {assessmentDate.toUpperCase()} · CONFIDENTIAL STUDENT REPORT</Text>
-      </Page>
-    </Document>
+        {/* Center — employability score */}
+        <div style={{
+          width: '27%',
+          padding: '12px 10px',
+          display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center',
+          borderRight: `1px solid ${C.border}`,
+          flexShrink: 0,
+        }}>
+          <div style={{ fontSize: 7.5, fontWeight: 700, color: C.textMuted, textTransform: 'uppercase', letterSpacing: '0.08em', marginBottom: 8, textAlign: 'center' }}>
+            Overall Employability Index
+          </div>
+          <ScoreRing value={overallScore} size={86} />
+          <div style={{ marginTop: 9, textAlign: 'center' }}>
+            <div style={{ fontSize: 10, fontWeight: 700, color: C.navyDark }}>{employabilityLevel}</div>
+            <div style={{
+              marginTop: 5, display: 'inline-block',
+              padding: '3px 10px', borderRadius: 12,
+              backgroundColor: rec.bgColor, color: rec.color,
+              fontSize: 7.5, fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.06em',
+            }}>
+              {rec.level}
+            </div>
+          </div>
+        </div>
+
+        {/* Right — profile summary */}
+        <div style={{ flex: 1, padding: '12px 14px' }}>
+          <div style={{ fontSize: 7.5, fontWeight: 700, color: C.textMuted, textTransform: 'uppercase', letterSpacing: '0.08em', marginBottom: 7 }}>
+            Profile Summary
+          </div>
+          <div style={{ fontSize: 8.5, lineHeight: 1.55, color: '#334155' }}>{profileSummary}</div>
+          <div style={{
+            marginTop: 9, padding: '7px 10px',
+            backgroundColor: C.blueSoft, borderRadius: 6,
+            borderLeft: `3px solid ${C.blue}`,
+          }}>
+            <div style={{ fontSize: 7, color: C.navy, fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.06em' }}>Primary Archetype</div>
+            <div style={{ fontSize: 9.5, color: C.text, fontWeight: 700, marginTop: 2 }}>{archetype.name}</div>
+          </div>
+        </div>
+      </div>
+
+      {/* ══ SECTIONS 3 + 4: BIG FIVE  +  PERSONALITY HIGHLIGHTS ═══════════════ */}
+      <div style={{ display: 'flex', borderBottom: `1px solid ${C.border}` }}>
+
+        {/* Big Five Traits */}
+        <div style={{ width: '55%', padding: '11px 14px', borderRight: `1px solid ${C.border}`, flexShrink: 0 }}>
+          <SecHead label="Big Five Personality Traits" />
+          {bigFiveTraits.map((trait, i) => (
+            <div key={trait.key} style={{ marginBottom: 9 }}>
+              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 3 }}>
+                <div style={{ display: 'flex', alignItems: 'center', gap: 5 }}>
+                  <div style={{ width: 7, height: 7, borderRadius: '50%', backgroundColor: BIG5_COLORS[i], flexShrink: 0 }} />
+                  <span style={{ fontSize: 9, fontWeight: 600, color: C.text }}>{trait.label}</span>
+                </div>
+                <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
+                  <span style={{ fontSize: 7.5, color: C.textMuted }}>{trait.value}th percentile</span>
+                  <LevelBadge level={trait.level} />
+                </div>
+              </div>
+              <HBar value={trait.value} color={BIG5_COLORS[i]} height={5} />
+            </div>
+          ))}
+        </div>
+
+        {/* Personality Highlights */}
+        <div style={{ flex: 1, padding: '11px 14px' }}>
+          <SecHead label="Personality Highlights" />
+          {personalityHighlights.slice(0, 5).map((s, i) => (
+            <div key={i} style={{ display: 'flex', alignItems: 'flex-start', gap: 7, marginBottom: 9 }}>
+              <span style={{ fontSize: 14, lineHeight: 1, flexShrink: 0 }}>{s.emoji}</span>
+              <div>
+                <div style={{ fontSize: 8.5, fontWeight: 700, color: C.text }}>{s.title}</div>
+                <div style={{ fontSize: 7.5, color: C.textMuted, lineHeight: 1.4 }}>{s.desc}</div>
+              </div>
+            </div>
+          ))}
+        </div>
+      </div>
+
+      {/* ══ SECTIONS 5 + 6 + 7 + 8: WORKPLACE  +  ROLE FIT  +  STRENGTHS  +  DEV ══ */}
+      <div style={{ display: 'flex', borderBottom: `1px solid ${C.border}` }}>
+
+        {/* Workplace Readiness */}
+        <div style={{ width: '29%', padding: '11px 13px', borderRight: `1px solid ${C.border}`, flexShrink: 0 }}>
+          <SecHead label="Workplace Readiness" />
+          {workplaceReadiness.map((item) => (
+            <div key={item.key} style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 6.5 }}>
+              <span style={{ fontSize: 8, color: '#334155' }}>{item.label}</span>
+              <Stars count={item.stars} />
+            </div>
+          ))}
+        </div>
+
+        {/* Role Fit Analysis */}
+        <div style={{ width: '41%', padding: '11px 13px', borderRight: `1px solid ${C.border}`, flexShrink: 0 }}>
+          <SecHead label="Role Fit Analysis" />
+          <div style={{ fontSize: 7.5, color: C.textMuted, marginBottom: 6, fontWeight: 600 }}>
+            Top Career Matches
+          </div>
+          {careerMatches.slice(0, 8).map((career) => (
+            <div key={career.title} style={{ display: 'flex', alignItems: 'center', gap: 6, marginBottom: 5.5 }}>
+              <span style={{ fontSize: 10, lineHeight: 1, flexShrink: 0 }}>{career.emoji}</span>
+              <div style={{ flex: 1 }}>
+                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 2 }}>
+                  <span style={{ fontSize: 8, fontWeight: 600, color: C.text }}>{career.title}</span>
+                  <span style={{ fontSize: 8, fontWeight: 700, color: C.blue }}>{career.match}%</span>
+                </div>
+                <HBar value={career.match} color={C.blue} height={4} />
+              </div>
+              <div style={{
+                fontSize: 6, fontWeight: 700, padding: '1px 5px', borderRadius: 6,
+                backgroundColor: career.match >= 85 ? C.greenLight : career.match >= 75 ? C.blueLight : C.orangeLight,
+                color: career.match >= 85 ? C.green : career.match >= 75 ? C.blue : C.orange,
+                flexShrink: 0,
+              }}>
+                {career.match >= 85 ? 'Strong' : career.match >= 75 ? 'Good' : 'Fair'}
+              </div>
+            </div>
+          ))}
+        </div>
+
+        {/* Top Strengths + Development Areas */}
+        <div style={{ flex: 1, padding: '11px 13px' }}>
+          <SecHead label="Top Strengths" accent={C.green} />
+          {topStrengths.slice(0, 5).map((s, i) => (
+            <div key={i} style={{ display: 'flex', alignItems: 'flex-start', gap: 5, marginBottom: 6 }}>
+              <span style={{ color: C.green, fontSize: 10, lineHeight: 1, marginTop: 1, flexShrink: 0 }}>✓</span>
+              <div>
+                <div style={{ fontSize: 8, fontWeight: 700, color: C.text }}>{s.title}</div>
+                <div style={{ fontSize: 7, color: C.textMuted, lineHeight: 1.35 }}>{s.desc}</div>
+              </div>
+            </div>
+          ))}
+
+          <div style={{ marginTop: 9 }}>
+            <SecHead label="Development Areas" accent={C.orange} />
+            {developmentAreas.slice(0, 3).map((area) => (
+              <div key={area.key} style={{ display: 'flex', alignItems: 'flex-start', gap: 5, marginBottom: 5 }}>
+                <span style={{ color: C.orange, fontSize: 9, lineHeight: 1, marginTop: 1, flexShrink: 0 }}>⚠</span>
+                <div>
+                  <div style={{ fontSize: 8, fontWeight: 700, color: C.text }}>{area.label}</div>
+                  <div style={{ fontSize: 7, color: C.textMuted, lineHeight: 1.35 }}>{area.action}</div>
+                </div>
+              </div>
+            ))}
+          </div>
+        </div>
+      </div>
+
+      {/* ══ SECTION 9: PREFERENCE INDICATORS ══════════════════════════════════ */}
+      <div style={{ padding: '11px 14px', borderBottom: `1px solid ${C.border}` }}>
+        <SecHead label="Preference Indicators" />
+        <div style={{ display: 'flex', flexWrap: 'wrap', gap: '6px 10px' }}>
+          {preferenceIndicators.map((pref) => (
+            <div key={pref.label} style={{
+              flex: '0 0 calc(33.33% - 7px)',
+              padding: '6px 9px',
+              backgroundColor: C.bgLight,
+              borderRadius: 6,
+              borderLeft: `2.5px solid ${C.blue}`,
+              boxSizing: 'border-box',
+            }}>
+              <div style={{ fontSize: 6.5, color: C.textFaint, textTransform: 'uppercase', letterSpacing: '0.07em', fontWeight: 700 }}>{pref.label}</div>
+              <div style={{ fontSize: 8.5, color: C.text, fontWeight: 600, marginTop: 2 }}>{pref.value}</div>
+            </div>
+          ))}
+        </div>
+      </div>
+
+      {/* ══ SECTION 10: INTERVIEW FOCUS AREAS ══════════════════════════════════ */}
+      <div style={{ padding: '11px 14px', borderBottom: `1px solid ${C.border}` }}>
+        <SecHead label="Interview Focus Areas" />
+        <div style={{ display: 'flex', gap: 8 }}>
+          {interviewFocusAreas.map((area) => (
+            <div key={area.title} style={{
+              flex: 1,
+              padding: '8px 10px',
+              backgroundColor: C.blueSoft,
+              borderRadius: 7,
+              borderTop: `2.5px solid ${C.blue}`,
+            }}>
+              <div style={{ fontSize: 8.5, fontWeight: 700, color: C.navyDark, marginBottom: 4 }}>{area.title}</div>
+              <div style={{ fontSize: 7.5, color: '#475569', lineHeight: 1.45 }}>{area.note}</div>
+            </div>
+          ))}
+        </div>
+      </div>
+
+      {/* ══ SECTION 11: HIRING RECOMMENDATION ══════════════════════════════════ */}
+      <div style={{
+        padding: '11px 14px',
+        backgroundColor: rec.bgColor,
+        borderBottom: `1px solid ${C.border}`,
+      }}>
+        <SecHead label="Hiring Recommendation" accent={rec.color} />
+        <div style={{ display: 'flex', alignItems: 'center', gap: 14 }}>
+          <div style={{
+            width: 48, height: 48, borderRadius: '50%',
+            backgroundColor: rec.color,
+            display: 'flex', alignItems: 'center', justifyContent: 'center',
+            flexShrink: 0,
+          }}>
+            <span style={{ fontSize: 22, color: '#FFFFFF', lineHeight: 1 }}>{rec.icon}</span>
+          </div>
+          <div>
+            <div style={{ fontSize: 13, fontWeight: 700, color: rec.color, marginBottom: 4 }}>{rec.level}</div>
+            <div style={{ fontSize: 8.5, color: '#334155', lineHeight: 1.55, maxWidth: 660 }}>{hiringText}</div>
+          </div>
+        </div>
+      </div>
+
+      {/* ══ SECTION 12: FOOTER ════════════════════════════════════════════════ */}
+      <div style={{ backgroundColor: C.navyDark, padding: '11px 20px 10px' }}>
+        <div style={{ display: 'flex', gap: 16, marginBottom: 9 }}>
+
+          <div style={{ flex: 1 }}>
+            <div style={{ fontSize: 7.5, fontWeight: 700, color: '#FFFFFF', marginBottom: 4, textTransform: 'uppercase', letterSpacing: '0.06em' }}>
+              Assessment Details
+            </div>
+            <div style={{ fontSize: 7, color: 'rgba(255,255,255,0.65)', lineHeight: 1.7 }}>
+              Assessment: PersonaVerse Personality Index<br />
+              Date: {assessmentDate}<br />
+              Student: {studentName}
+            </div>
+          </div>
+
+          <div style={{ flex: 1 }}>
+            <div style={{ fontSize: 7.5, fontWeight: 700, color: '#FFFFFF', marginBottom: 4, textTransform: 'uppercase', letterSpacing: '0.06em' }}>
+              Percentile Guide
+            </div>
+            <div style={{ fontSize: 7, color: 'rgba(255,255,255,0.65)', lineHeight: 1.7 }}>
+              70–100: High Proficiency<br />
+              45–69: Moderate Proficiency<br />
+              0–44: Developing Stage
+            </div>
+          </div>
+
+          <div style={{ flex: 1 }}>
+            <div style={{ fontSize: 7.5, fontWeight: 700, color: '#FFFFFF', marginBottom: 4, textTransform: 'uppercase', letterSpacing: '0.06em' }}>
+              About This Report
+            </div>
+            <div style={{ fontSize: 7, color: 'rgba(255,255,255,0.65)', lineHeight: 1.7 }}>
+              Scores are derived from the PersonaVerse Psychometric Assessment. For academic and institutional reference only. © 2026 PersonaVerse.
+            </div>
+          </div>
+
+        </div>
+        <div style={{
+          borderTop: '1px solid rgba(255,255,255,0.15)',
+          paddingTop: 7,
+          textAlign: 'center',
+          fontSize: 7.5,
+          color: 'rgba(255,255,255,0.5)',
+          fontStyle: 'italic',
+        }}>
+          "The best investment you can make is an investment in yourself. The more you learn, the more you earn." — Warren Buffett
+        </div>
+      </div>
+
+    </div>
   );
 }

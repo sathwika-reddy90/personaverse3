@@ -7,8 +7,8 @@ import Button from '../../components/common/Button';
 import EmptyState from '../../components/common/EmptyState';
 import { SkeletonHero, SkeletonCard, SkeletonRow } from '../../components/common/Skeleton';
 import { useApp } from '../../../context/AppContext';
-import { getArchetype } from '../../../data/archetypes/archetypes';
-import { getInsights, getCareerMatches, AVERAGE_STUDENT, COMPARISON_META } from '../../../data/insights/insights';
+import { getArchetype } from '../../../backend/archetypes/archetypes';
+import { getInsights, getCareerMatches, AVERAGE_STUDENT, COMPARISON_META } from '../../../backend/insights/insights';
 import useReady from '../../hooks/useReady';
 
 const fadeUp = {

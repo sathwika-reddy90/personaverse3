@@ -5,8 +5,8 @@ import GlassCard from '../../components/common/GlassCard';
 import Button from '../../components/common/Button';
 import FloatingBlobs from '../../components/common/FloatingBlobs';
 import { useApp } from '../../../context/AppContext';
-import { getArchetype } from '../../../data/archetypes/archetypes';
-import { getInsights } from '../../../data/insights/insights';
+import { getArchetype } from '../../../backend/archetypes/archetypes';
+import { getInsights } from '../../../backend/insights/insights';
 
 const MENU = [
   { emoji: '🔔', label: 'Notifications' },

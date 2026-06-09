@@ -8,8 +8,8 @@ import Confetti from '../../components/common/Confetti';
 import Button from '../../components/common/Button';
 import MagneticButton from '../../components/common/MagneticButton';
 import { useApp } from '../../../context/AppContext';
-import { getArchetype } from '../../../data/archetypes/archetypes';
-import { getInsights, getCareerMatches } from '../../../data/insights/insights';
+import { getArchetype } from '../../../backend/archetypes/archetypes';
+import { getInsights, getCareerMatches } from '../../../backend/insights/insights';
 
 function CardShell({ children, gradient }) {
   return (

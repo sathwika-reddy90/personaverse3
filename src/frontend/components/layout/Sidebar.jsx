@@ -1,7 +1,7 @@
 import { motion } from 'framer-motion';
 import { useLocation, useNavigate } from 'react-router-dom';
 import { useApp } from '../../../context/AppContext';
-import { getArchetype } from '../../../data/archetypes/archetypes';
+import { getArchetype } from '../../../backend/archetypes/archetypes';
 
 const TABS = [
   { path: '/home', label: 'Feed', icon: '🏠' },
