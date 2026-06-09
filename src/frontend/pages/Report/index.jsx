@@ -28,7 +28,7 @@ import {
   getPreferenceIndicators,
   getInterviewFocusAreas,
   getHiringText,
-} from '../../../backend/services/reports/report';
+} from '../../../backend/reports/report';
 import useReady from '../../hooks/useReady';
 import { exportSectionsToPdf, sanitizeFileSegment } from '../../../utils/exportReport';
 import { exportOnePageSummary } from '../../../utils/exportOnePageReport';

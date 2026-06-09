@@ -238,6 +238,95 @@ export const getCondensedInsight = (archetype, insights, results, careerMatches)
   ];
 };
 
+// ── HR 1-Page Summary functions ─────────────────────────────────
+
+export const getBigFiveTraits = (scores) => [
+  { key: 'openness',          label: 'Openness',            abbr: 'OPN', value: avg(scores.creative ?? 0, scores.introspection), desc: 'Intellectual curiosity, creativity, and appreciation for novelty' },
+  { key: 'conscientiousness', label: 'Conscientiousness',   abbr: 'CON', value: scores.discipline,                               desc: 'Organisation, dependability, and goal-directed behaviour' },
+  { key: 'extraversion',      label: 'Extraversion',        abbr: 'EXT', value: avg(scores.social, scores.leadership),           desc: 'Sociability, assertiveness, and positive emotionality' },
+  { key: 'agreeableness',     label: 'Agreeableness',       abbr: 'AGR', value: scores.empathy,                                  desc: 'Cooperation, trust, and concern for others' },
+  { key: 'stability',         label: 'Emotional Stability', abbr: 'EST', value: avg(scores.introspection, clamp(100 - (scores.risk ?? 50))), desc: 'Calm under pressure, emotional resilience, and stability' },
+];
+
+export const getWorkplaceReadiness = (scores) => [
+  { label: 'Communication',          value: avg(scores.empathy, scores.social),           desc: 'Expressing ideas clearly and collaborating with others' },
+  { label: 'Leadership',             value: avg(scores.leadership, scores.discipline),    desc: 'Capacity to guide, motivate, and set direction for teams' },
+  { label: 'Critical Thinking',      value: avg(scores.introspection, scores.discipline), desc: 'Analytical reasoning and structured problem-solving' },
+  { label: 'Adaptability',           value: avg(scores.creative ?? 0, scores.risk ?? 50), desc: 'Flexibility in the face of change and ambiguity' },
+  { label: 'Emotional Intelligence', value: avg(scores.empathy, scores.introspection),    desc: 'Self-awareness, empathy, and interpersonal sensitivity' },
+];
+
+export const getHiringRecommendation = (overallScore) => {
+  if (overallScore >= 75) return { level: 'Strong Hire', color: 'green', label: 'Highly Recommended' };
+  if (overallScore >= 60) return { level: 'Hire',        color: 'blue',  label: 'Recommended' };
+  if (overallScore >= 45) return { level: 'Consider',    color: 'amber', label: 'Consider with Development' };
+  return                         { level: 'Pass',        color: 'red',   label: 'Not Recommended' };
+};
+
+export const getPreferenceIndicators = (scores, archetypeId) => [
+  {
+    dimension: 'E / I',
+    label: scores.social >= 50 ? 'Extraverted' : 'Introverted',
+    value: scores.social >= 50 ? scores.social : clamp(100 - scores.social),
+    desc: scores.social >= 50 ? 'Energised by social interaction and group activity' : 'Energised by reflection and focused solitude',
+  },
+  {
+    dimension: 'N / S',
+    label: (scores.creative ?? 0) >= 50 ? 'Intuitive' : 'Sensing',
+    value: (scores.creative ?? 0) >= 50 ? (scores.creative ?? 0) : clamp(100 - (scores.creative ?? 0)),
+    desc: (scores.creative ?? 0) >= 50 ? 'Drawn to patterns, ideas, and future possibilities' : 'Prefers facts, details, and concrete experience',
+  },
+  {
+    dimension: 'F / T',
+    label: scores.empathy >= 50 ? 'Feeling' : 'Thinking',
+    value: scores.empathy >= 50 ? scores.empathy : clamp(100 - scores.empathy),
+    desc: scores.empathy >= 50 ? 'Decisions guided by values and people impact' : 'Decisions guided by logic and objective analysis',
+  },
+  {
+    dimension: 'J / P',
+    label: scores.discipline >= 50 ? 'Judging' : 'Perceiving',
+    value: scores.discipline >= 50 ? scores.discipline : clamp(100 - scores.discipline),
+    desc: scores.discipline >= 50 ? 'Prefers structure, clear plans, and decisiveness' : 'Prefers flexibility and keeping options open',
+  },
+];
+
+export const getInterviewFocusAreas = (scores) => {
+  const sorted = Object.entries(scores).sort((a, b) => b[1] - a[1]);
+  const top2 = sorted.slice(0, 2);
+  const bottom2 = sorted.slice(-2);
+  return [
+    ...top2.map(([key, value]) => ({
+      area: SCORE_LABELS[key] || key,
+      type: 'strength',
+      question: `Describe a specific situation where your ${SCORE_LABELS[key] || key} made a measurable difference.`,
+      rationale: `Score ${value}/100 — probe depth and real-world application.`,
+    })),
+    ...bottom2.map(([key, value]) => ({
+      area: SCORE_LABELS[key] || key,
+      type: 'development',
+      question: `How do you approach situations that demand strong ${SCORE_LABELS[key] || key}?`,
+      rationale: `Score ${value}/100 — assess self-awareness and growth orientation.`,
+    })),
+  ];
+};
+
+export const getHiringText = (overallScore, archetype, scores) => {
+  const rec = getHiringRecommendation(overallScore);
+  const topEntry = Object.entries(scores).sort((a, b) => b[1] - a[1])[0];
+  const topLabel = SCORE_LABELS[topEntry[0]] || topEntry[0];
+  let body;
+  if (overallScore >= 75) {
+    body = `${archetype.name} profile demonstrates exceptional readiness. Standout "${topLabel}" score signals high potential for rapid growth. Recommend fast-tracking to role placement with structured mentoring.`;
+  } else if (overallScore >= 60) {
+    body = `${archetype.name} profile shows strong alignment with workplace requirements. The candidate's "${topLabel}" strength is a reliable predictor of performance. Recommend placement with standard onboarding.`;
+  } else if (overallScore >= 45) {
+    body = `${archetype.name} profile shows moderate readiness with clear growth potential. Focused development on lower-scoring dimensions recommended before final placement.`;
+  } else {
+    body = `Profile indicates early-stage readiness. A structured development programme is recommended before considering for direct placement.`;
+  }
+  return { recommendation: rec.level, body };
+};
+
 export const getFinalSummary = (archetype, insights, results, careerMatches) => {
   const topCareer = careerMatches[0];
   const secondCareer = careerMatches[1];

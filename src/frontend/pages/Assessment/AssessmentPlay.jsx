@@ -7,7 +7,7 @@ import FloatingBlobs from '../../components/common/FloatingBlobs';
 import NovaCompanion, { NOVA_LINES } from '../../components/assessment/NovaCompanion';
 import UniversalQuestion from '../../components/assessment/UniversalQuestion';
 import { questions, GROUPS } from '../../../backend/questions/questions';
-import { computeResults, DETECTION_MESSAGES } from '../../../backend/services/scoring/scoring';
+import { computeResults, DETECTION_MESSAGES } from '../../../backend/scoring/resultEngine';
 
 let toastSeq = 0;
 let novaSeq = 0;
