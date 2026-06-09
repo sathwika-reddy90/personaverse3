@@ -1,0 +1,196 @@
+@import "tailwindcss";
+@import url('https://fonts.googleapis.com/css2?family=Sora:wght@400;500;600;700;800&family=Manrope:wght@400;500;600;700;800&display=swap');
+
+@theme {
+  --color-primary: #3A0CA3;
+  --color-primary-light: #6A2FE0;
+  --color-accent: #FF4D6D;
+  --color-highlight: #FFC868;
+  --color-support: #22D3C5;
+  --color-bg: #E8ECF2;
+  --color-surface: #F0F4F8;
+  --color-ink: #1A1530;
+
+  --font-display: "Sora", "Manrope", system-ui, sans-serif;
+  --font-body: "Manrope", system-ui, sans-serif;
+
+  --shadow-soft: 0 10px 30px rgba(58, 12, 163, 0.08);
+  --shadow-soft-hover: 0 20px 50px rgba(58, 12, 163, 0.15);
+  --shadow-card: 0 20px 50px rgba(58, 12, 163, 0.15);
+  --shadow-glow-accent: 0 0 40px -8px rgba(255, 77, 109, 0.55);
+  --shadow-glow-support: 0 0 40px -8px rgba(34, 211, 197, 0.55);
+}
+
+@keyframes blob {
+  0%, 100% { transform: translate(0, 0) scale(1); }
+  25% { transform: translate(20px, -30px) scale(1.1); }
+  50% { transform: translate(-15px, 15px) scale(0.95); }
+  75% { transform: translate(25px, 25px) scale(1.05); }
+}
+
+@keyframes float {
+  0%, 100% { transform: translateY(0px); }
+  50% { transform: translateY(-14px); }
+}
+
+@keyframes shimmer {
+  0% { background-position: -200% 0; }
+  100% { background-position: 200% 0; }
+}
+
+.animate-blob { animation: blob 16s infinite ease-in-out; }
+.animate-float { animation: float 6s infinite ease-in-out; }
+.animate-shimmer { animation: shimmer 2.4s infinite linear; }
+
+* {
+  -webkit-tap-highlight-color: transparent;
+}
+
+html, body, #root {
+  height: 100%;
+}
+
+body {
+  margin: 0;
+  font-family: var(--font-body);
+  background: var(--color-bg);
+  color: var(--color-ink);
+  overscroll-behavior-y: none;
+  -webkit-font-smoothing: antialiased;
+}
+
+#root {
+  display: flex;
+  min-height: 100%;
+}
+
+.app-shell {
+  width: 100%;
+  height: 100svh;
+  position: relative;
+  background:
+    radial-gradient(120% 90% at 14% -10%, rgba(58, 12, 163, 0.10), transparent 55%),
+    radial-gradient(110% 80% at 100% 0%, rgba(34, 211, 197, 0.08), transparent 50%),
+    linear-gradient(180deg, #ECF0F6 0%, var(--color-bg) 40%);
+  overflow: hidden;
+  display: flex;
+  flex-direction: column;
+}
+
+::-webkit-scrollbar {
+  display: none;
+}
+* {
+  scrollbar-width: none;
+}
+
+.glass {
+  background: linear-gradient(160deg, rgba(255, 255, 255, 0.72), rgba(240, 244, 248, 0.5));
+  backdrop-filter: blur(18px);
+  -webkit-backdrop-filter: blur(18px);
+  border: 1px solid rgba(255, 255, 255, 0.6);
+  box-shadow: var(--shadow-soft);
+  transition: box-shadow 0.35s cubic-bezier(0.22, 1, 0.36, 1), transform 0.35s cubic-bezier(0.22, 1, 0.36, 1);
+}
+
+.glass-dark {
+  background: linear-gradient(160deg, rgba(36, 22, 74, 0.65), rgba(26, 21, 48, 0.55));
+  backdrop-filter: blur(18px);
+  -webkit-backdrop-filter: blur(18px);
+  border: 1px solid rgba(255, 255, 255, 0.12);
+  box-shadow: var(--shadow-card);
+}
+
+.text-gradient {
+  background: linear-gradient(120deg, #3A0CA3, #FF4D6D 60%, #FFC868);
+  -webkit-background-clip: text;
+  background-clip: text;
+  color: transparent;
+}
+
+.shimmer-bg {
+  background: linear-gradient(110deg, rgba(255,255,255,0) 30%, rgba(255,255,255,0.55) 50%, rgba(255,255,255,0) 70%);
+  background-size: 200% 100%;
+  animation: shimmer 2.4s infinite linear;
+}
+
+/* --- PersonaNova premium surfaces & motion --- */
+
+.surface-card {
+  background: linear-gradient(160deg, #F6F9FC, var(--color-surface));
+  border: 1px solid rgba(58, 12, 163, 0.06);
+  box-shadow: var(--shadow-soft);
+}
+
+.surface-sunken {
+  background: linear-gradient(160deg, #DFE5EE, #E8ECF2);
+  border: 1px solid rgba(58, 12, 163, 0.05);
+}
+
+.glass-surface {
+  background: linear-gradient(165deg, rgba(240, 244, 248, 0.78), rgba(232, 236, 242, 0.55));
+  backdrop-filter: blur(20px);
+  -webkit-backdrop-filter: blur(20px);
+  border: 1px solid rgba(255, 255, 255, 0.5);
+}
+
+.hover-lift {
+  transition: transform 0.35s cubic-bezier(0.22, 1, 0.36, 1), box-shadow 0.35s cubic-bezier(0.22, 1, 0.36, 1);
+}
+.hover-lift:hover {
+  transform: translateY(-4px) scale(1.02);
+  box-shadow: var(--shadow-soft-hover);
+}
+
+.gradient-hero {
+  background:
+    radial-gradient(120% 140% at 100% 0%, rgba(34, 211, 197, 0.35), transparent 55%),
+    radial-gradient(120% 140% at 0% 100%, rgba(255, 77, 109, 0.18), transparent 60%),
+    linear-gradient(135deg, #3A0CA3 0%, #5A3BE0 55%, #22D3C5 130%);
+}
+
+.gradient-insight {
+  background: linear-gradient(135deg, rgba(58, 12, 163, 0.92), rgba(34, 211, 197, 0.72));
+}
+
+.gradient-archetype-grid {
+  background: linear-gradient(135deg, #3A0CA3, #22D3C5);
+}
+
+.gradient-sidebar-active {
+  background: linear-gradient(135deg, #3A0CA3, #5A3BE0);
+}
+
+.gradient-reflection {
+  background: linear-gradient(150deg, rgba(255, 200, 104, 0.28), rgba(255, 200, 104, 0.1));
+}
+
+.progress-track {
+  background: rgba(58, 12, 163, 0.1);
+}
+
+.progress-fill {
+  background: linear-gradient(90deg, #3A0CA3, #22D3C5);
+}
+
+.safe-top {
+  padding-top: max(env(safe-area-inset-top), 1.5rem);
+}
+
+.safe-bottom {
+  padding-bottom: max(env(safe-area-inset-bottom), 1rem);
+}
+
+.skeleton-pulse {
+  position: relative;
+  overflow: hidden;
+  background: rgba(58, 12, 163, 0.08);
+}
+.skeleton-pulse::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(110deg, transparent 30%, rgba(255,255,255,0.7) 50%, transparent 70%);
+  background-size: 200% 100%;
+  animation: shimmer 1.6s infinite linear;
+}
