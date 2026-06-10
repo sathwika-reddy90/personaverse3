@@ -1,4 +1,4 @@
-import { TRAIT_LABELS } from '../../questions/questions';
+import { TRAIT_LABELS } from '../questions/questions';
 
 export const ARCHETYPE_TRAITS = {
   founder: ['leadership', 'risk'],
