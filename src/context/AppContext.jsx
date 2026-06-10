@@ -6,6 +6,7 @@ const STORAGE_KEY = 'personanova_state_v2';
 
 const defaultState = {
   onboarded: false,
+  isAuthenticated: false,
   results: null, // { archetype, scores, growthAreas, topTraits }
 };
 
@@ -28,11 +29,15 @@ export function AppProvider({ children }) {
 
   const completeOnboarding = () => setState((s) => ({ ...s, onboarded: true }));
   const saveResults = (results) => setState((s) => ({ ...s, results }));
+  const login = () => setState((s) => ({ ...s, isAuthenticated: true, onboarded: true }));
+  const logout = () => setState((s) => ({ ...s, isAuthenticated: false }));
 
   const value = {
     ...state,
     completeOnboarding,
     saveResults,
+    login,
+    logout,
   };
 
   return <AppContext.Provider value={value}>{children}</AppContext.Provider>;

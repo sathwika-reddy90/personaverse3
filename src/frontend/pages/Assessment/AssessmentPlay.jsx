@@ -2,47 +2,22 @@ import { useState } from 'react';
 import { AnimatePresence, motion } from 'framer-motion';
 import { useNavigate } from 'react-router-dom';
 import PageTransition from '../../components/layout/PageTransition';
-import LiveDetectionToast from '../../components/assessment/LiveDetectionToast';
 import FloatingBlobs from '../../components/common/FloatingBlobs';
-import NovaCompanion, { NOVA_LINES } from '../../components/assessment/NovaCompanion';
 import UniversalQuestion from '../../components/assessment/UniversalQuestion';
-import { questions, GROUPS } from '../../../backend/questions/questions';
-import { computeResults, DETECTION_MESSAGES } from '../../../backend/scoring/resultEngine';
-
-let toastSeq = 0;
-let novaSeq = 0;
+import { questions } from '../../../backend/questions/questions';
+import { computeResults } from '../../../backend/scoring/resultEngine';
 
 export default function AssessmentPlay() {
   const navigate = useNavigate();
   const [index, setIndex] = useState(0);
-  const [toasts, setToasts] = useState([]);
   const [answers, setAnswers] = useState(() => Array(questions.length).fill(null));
-  const [novaMessage, setNovaMessage] = useState(null);
 
   const question = questions[index];
-  const group = GROUPS.find((g) => g.id === question.group) ?? GROUPS[0];
   const progress = (index / questions.length) * 100;
 
-  // Normalize backend shape → UniversalQuestion shape (expects .text and .category)
   const questionData = {
     ...question,
     text: question.question,
-    category: group.name,
-  };
-
-  const pushDetection = (trait) => {
-    const msg = DETECTION_MESSAGES[trait];
-    if (!msg) return;
-    const key = `t-${toastSeq++}`;
-    setToasts((t) => [...t.slice(-1), { key, ...msg }]);
-    setTimeout(() => setToasts((t) => t.filter((x) => x.key !== key)), 2200);
-  };
-
-  const showNova = () => {
-    const key = `n-${novaSeq++}`;
-    const text = NOVA_LINES[Math.floor(Math.random() * NOVA_LINES.length)];
-    setNovaMessage({ key, text });
-    setTimeout(() => setNovaMessage((m) => (m?.key === key ? null : m)), 3000);
   };
 
   const finish = (finalAnswers) => {
@@ -56,9 +31,6 @@ export default function AssessmentPlay() {
   };
 
   const handleAnswer = (score) => {
-    if (question.trait) pushDetection(question.trait);
-    if ((index + 1) % 7 === 0) showNova();
-
     const next = [...answers];
     next[index] = score;
     setAnswers(next);
@@ -77,7 +49,6 @@ export default function AssessmentPlay() {
   return (
     <PageTransition className="flex-1 flex flex-col relative">
       <FloatingBlobs className="opacity-30" />
-      <LiveDetectionToast items={toasts} />
 
       <div className="relative z-10 px-6 safe-top pb-2">
         <div className="flex items-center justify-between mb-3 gap-2">
@@ -92,14 +63,10 @@ export default function AssessmentPlay() {
           ) : (
             <span className="w-[88px] shrink-0" />
           )}
-          <span
-            className={`inline-flex items-center gap-1.5 rounded-full px-3 py-1 text-xs font-bold text-white bg-gradient-to-r ${group.color} truncate`}
-          >
-            {group.emoji} {group.name}
+          <span className="text-xs font-bold text-ink/40">
+            Question {index + 1} of {questions.length}
           </span>
-          <span className="text-xs font-bold text-ink/40 shrink-0">
-            {index + 1} / {questions.length}
-          </span>
+          <span className="w-[88px] shrink-0" />
         </div>
         <div className="h-2 rounded-full bg-ink/10 overflow-hidden">
           <motion.div
@@ -124,8 +91,6 @@ export default function AssessmentPlay() {
           </motion.div>
         </AnimatePresence>
       </div>
-
-      <NovaCompanion message={novaMessage} />
     </PageTransition>
   );
 }

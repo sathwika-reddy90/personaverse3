@@ -7,31 +7,20 @@ import Button from '../../components/common/Button';
 import EmptyState from '../../components/common/EmptyState';
 import { SkeletonHero, SkeletonCard } from '../../components/common/Skeleton';
 import { useApp } from '../../../context/AppContext';
-import { getArchetype } from '../../../backend/archetypes/archetypes';
-import { getInsights, getCareerMatches, AVERAGE_STUDENT } from '../../../backend/insights/insights';
+import { AVERAGE_STUDENT } from '../../../backend/insights/insights';
 import {
-  getOverallScore,
   getPersonalityMatch,
   getSnapshotTraits,
-  getGrowthDetails,
   getLearningProfile,
   getSocialProfile,
   getSkillDetails,
   getActionPlan,
   getFinalSummary,
-  getTopStrengths,
-  getCompactProfile,
-  getCondensedInsight,
-  getBigFiveTraits,
-  getWorkplaceReadiness,
-  getHiringRecommendation,
-  getPreferenceIndicators,
-  getInterviewFocusAreas,
-  getHiringText,
 } from '../../../backend/reports/report';
 import useReady from '../../hooks/useReady';
 import { exportSectionsToPdf, sanitizeFileSegment } from '../../../utils/exportReport';
 import { exportOnePageSummary } from '../../../utils/exportOnePageReport';
+import { buildOnePageSummary } from '../../utils/reportData';
 
 import ReportHeader from '../../components/report/ReportHeader';
 import ExecutiveSummary from '../../components/report/ExecutiveSummary';
@@ -79,45 +68,16 @@ export default function Report() {
     );
   }
 
-  const archetype = getArchetype(results.archetype);
-  const insights = getInsights(results.archetype);
-  const careerMatches = getCareerMatches(results.archetype);
+  const onePageSummary = buildOnePageSummary(results);
+  const { archetype, insights, careerMatches, overallScore, developmentAreas: growthDetails, studentName, assessmentDate } = onePageSummary;
 
-  const overallScore = getOverallScore(results.scores);
   const personalityMatch = getPersonalityMatch(results);
   const snapshotTraits = getSnapshotTraits(results.scores);
-  const growthDetails = getGrowthDetails(results.scores);
   const learningProfile = getLearningProfile(results.scores, insights);
   const socialProfile = getSocialProfile(results.scores);
   const skillDetails = getSkillDetails(insights);
   const actionPlan = getActionPlan(archetype, insights, results, careerMatches);
   const finalSummary = getFinalSummary(archetype, insights, results, careerMatches);
-
-  const topStrengths = getTopStrengths(insights, results, snapshotTraits);
-  const compactProfile = getCompactProfile(results.scores, insights);
-  const condensedInsight = getCondensedInsight(archetype, insights, results, careerMatches);
-
-  // ── HR 1-page summary data ──────────────────────────────────────────────
-  const bigFiveTraits = getBigFiveTraits(results.scores);
-  const workplaceReadiness = getWorkplaceReadiness(results.scores);
-  const hiringRecommendation = getHiringRecommendation(overallScore);
-  const preferenceIndicators = getPreferenceIndicators(results.scores, results.archetype);
-  const interviewFocusAreas = getInterviewFocusAreas(results.scores);
-  const hiringText = getHiringText(overallScore, archetype, results.scores);
-  const employabilityLevel =
-    overallScore >= 75 ? 'High' :
-    overallScore >= 60 ? 'Above Average' :
-    overallScore >= 45 ? 'Average' : 'Below Average';
-
-  // Combine archetype strengths + trait-derived extras for up to 5 highlights.
-  const namedTitles = new Set(insights.strengths.map((s) => s.title));
-  const personalityHighlights = [
-    ...insights.strengths,
-    ...topStrengths.filter((s) => !namedTitles.has(s.title)).map((s) => ({ emoji: s.emoji || '✦', title: s.title, desc: s.desc || '' })),
-  ].slice(0, 5);
-
-  const assessmentDate = new Date().toLocaleDateString('en-US', { month: 'long', day: 'numeric', year: 'numeric' });
-  const studentName = 'Explorer';
 
   const flashToast = (tone, message) => {
     setToast({ tone, message });
@@ -149,27 +109,7 @@ export default function Report() {
     setSummaryState('working');
     try {
       await exportOnePageSummary({
-        data: {
-          studentName,
-          rollNumber: 'N/A',
-          college: 'N/A',
-          branch: 'N/A',
-          assessmentDate,
-          overallScore,
-          employabilityLevel,
-          profileSummary: insights.summary,
-          bigFiveTraits,
-          personalityHighlights,
-          workplaceReadiness,
-          careerMatches,
-          topStrengths,
-          developmentAreas: growthDetails,
-          preferenceIndicators,
-          interviewFocusAreas,
-          hiringRecommendation,
-          hiringText,
-          archetype,
-        },
+        data: onePageSummary,
         fileName: `Student_Intelligence_Summary_${sanitizeFileSegment(studentName)}.pdf`,
       });
       flashToast('done', '1-page summary downloaded successfully');
@@ -201,13 +141,13 @@ export default function Report() {
         <div className="max-w-6xl mx-auto pt-6 sm:pt-8">
           <div className="flex items-center justify-between mb-5">
             <button
-              onClick={() => navigate('/insights')}
+              onClick={() => navigate('/dashboard')}
               className="h-9 w-9 rounded-full bg-ink/5 grid place-items-center text-ink/55 hover:bg-ink/10 transition-colors"
-              aria-label="Back to Intelligence Hub"
+              aria-label="Back to Dashboard"
             >
               ←
             </button>
-            <p className="text-[11px] font-bold text-ink/35 uppercase tracking-[0.2em]">Intelligence Hub → Report</p>
+            <p className="text-[11px] font-bold text-ink/35 uppercase tracking-[0.2em]">Dashboard → Report</p>
           </div>
 
           {!ready ? (
@@ -251,8 +191,8 @@ export default function Report() {
                     <Button variant="ghost" fullWidth={false} className="flex-1 sm:flex-none px-5" onClick={() => navigate(`/archetype/${archetype.id}`)}>
                       View Archetype
                     </Button>
-                    <Button variant="primary" fullWidth={false} className="flex-1 sm:flex-none px-5" onClick={() => navigate('/insights')}>
-                      Intelligence Hub
+                    <Button variant="primary" fullWidth={false} className="flex-1 sm:flex-none px-5" onClick={() => navigate('/dashboard')}>
+                      Back to Dashboard
                     </Button>
                   </div>
                 </GlassCard>

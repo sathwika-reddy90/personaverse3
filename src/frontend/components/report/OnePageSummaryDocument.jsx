@@ -1,10 +1,9 @@
 // OnePageSummaryDocument.jsx — Premium HR / Psychometric Report Design
-// Rendered off-screen via createRoot → captured by html2canvas-pro → A4 PDF.
+// Rendered off-screen via createRoot → captured by html2canvas-pro → single-page landscape PDF.
 // ALL styles are inline (html2canvas reads computed styles; Tailwind is NOT used here).
 
 // ─── Design tokens ─────────────────────────────────────────────────────────
 const C = {
-  // Brand blues
   navyDark: '#0D2249',
   navy: '#1A3A6B',
   blue: '#1E40AF',
@@ -13,7 +12,6 @@ const C = {
   blueLight: '#DBEAFE',
   bluePale: '#F0F5FF',
 
-  // Text
   ink: '#0F172A',
   inkMid: '#1E293B',
   inkSoft: '#334155',
@@ -21,15 +19,13 @@ const C = {
   faint: '#94A3B8',
   ghost: '#CBD5E1',
 
-  // Surfaces
   bg: '#FFFFFF',
   surface: '#F8FAFC',
   surfaceAlt: '#F1F5F9',
 
-  // Borders
   border: '#E2E8F0',
+  borderBlack: '#000000',
 
-  // Semantic
   green: '#15803D',
   greenVivid: '#16A34A',
   greenLight: '#DCFCE7',
@@ -50,7 +46,6 @@ const C = {
   redLight: '#FEE2E2',
   redBg: '#FEF2F2',
 
-  // Trait palette
   purple: '#6D28D9',
   purpleVivid: '#7C3AED',
   purpleLight: '#EDE9FE',
@@ -70,54 +65,21 @@ const C = {
 
 // Big Five: Openness, Conscientiousness, Extraversion, Agreeableness, Emotional Stability
 const BIG5_PALETTE = [
-  { color: C.purpleVivid, light: C.purpleLight, label: 'OPN' },
-  { color: C.indigoVivid, light: C.indigoLight, label: 'CON' },
-  { color: C.tealVivid,   light: C.tealLight,   label: 'EXT' },
-  { color: C.skyVivid,    light: C.skyLight,     label: 'AGR' },
-  { color: C.roseVivid,   light: C.roseLight,    label: 'EST' },
+  { color: C.purpleVivid, light: C.purpleLight },
+  { color: C.indigoVivid, light: C.indigoLight },
+  { color: C.tealVivid,   light: C.tealLight },
+  { color: C.skyVivid,    light: C.skyLight },
+  { color: C.roseVivid,   light: C.roseLight },
 ];
 
+// Shared card border style applied to every major section
+const CARD = {
+  border: '2px solid #000',
+  borderRadius: 12,
+  overflow: 'hidden',
+};
+
 // ─── Sub-components ─────────────────────────────────────────────────────────
-
-function ScoreRing({ value, size = 108 }) {
-  const sw = 11;
-  const r = (size - sw) / 2;
-  const circ = 2 * Math.PI * r;
-  const filled = (Math.max(0, Math.min(100, value)) / 100) * circ;
-  const col =
-    value >= 75 ? C.greenVivid :
-    value >= 60 ? C.blueVivid :
-    value >= 45 ? C.amberVivid : C.redVivid;
-  return (
-    <div style={{ position: 'relative', width: size, height: size, flexShrink: 0 }}>
-      <svg width={size} height={size} viewBox={`0 0 ${size} ${size}`}
-        style={{ transform: 'rotate(-90deg)', display: 'block' }}>
-        {/* track */}
-        <circle cx={size/2} cy={size/2} r={r} stroke="#E2E8F0" strokeWidth={sw} fill="none" />
-        {/* filled arc */}
-        <circle cx={size/2} cy={size/2} r={r} stroke={col} strokeWidth={sw} fill="none"
-          strokeLinecap="round" strokeDasharray={`${filled} ${circ}`} />
-      </svg>
-      <div style={{
-        position: 'absolute', inset: 0,
-        display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center',
-      }}>
-        <span style={{ fontSize: 28, fontWeight: 800, color: C.ink, lineHeight: 1, letterSpacing: '-0.03em' }}>{value}</span>
-        <span style={{ fontSize: 7, color: C.muted, fontWeight: 600, marginTop: 1, letterSpacing: '0.05em' }}>/100</span>
-      </div>
-    </div>
-  );
-}
-
-function Stars({ count, max = 5 }) {
-  return (
-    <div style={{ display: 'flex', gap: 1.5 }}>
-      {Array.from({ length: max }, (_, i) => (
-        <span key={i} style={{ fontSize: 10.5, color: i < count ? '#F59E0B' : '#E2E8F0', lineHeight: 1 }}>★</span>
-      ))}
-    </div>
-  );
-}
 
 function HBar({ value, color, height = 5, bg = C.surfaceAlt }) {
   const w = `${Math.max(3, Math.min(100, value))}%`;
@@ -130,9 +92,9 @@ function HBar({ value, color, height = 5, bg = C.surfaceAlt }) {
 
 function SecHead({ label, accent = C.blueVivid }) {
   return (
-    <div style={{ display: 'flex', alignItems: 'center', gap: 6, marginBottom: 10 }}>
-      <div style={{ width: 3, height: 15, backgroundColor: accent, borderRadius: 3, flexShrink: 0 }} />
-      <span style={{ fontSize: 8, fontWeight: 800, color: C.inkMid, textTransform: 'uppercase', letterSpacing: '0.12em' }}>
+    <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 14 }}>
+      <div style={{ width: 4, height: 17, backgroundColor: accent, borderRadius: 3, flexShrink: 0 }} />
+      <span style={{ fontSize: 9, fontWeight: 800, color: C.inkMid, textTransform: 'uppercase', letterSpacing: '0.13em' }}>
         {label}
       </span>
     </div>
@@ -142,7 +104,7 @@ function SecHead({ label, accent = C.blueVivid }) {
 function Pill({ label, color, bg }) {
   return (
     <span style={{
-      fontSize: 6.5, fontWeight: 700, padding: '2px 7px', borderRadius: 20,
+      fontSize: 7.5, fontWeight: 700, padding: '3px 9px', borderRadius: 20,
       backgroundColor: bg, color: color, letterSpacing: '0.05em', textTransform: 'uppercase', display: 'inline-block',
     }}>
       {label}
@@ -152,23 +114,84 @@ function Pill({ label, color, bg }) {
 
 function LevelBadge({ level }) {
   const s =
-    level === 'High'      ? { bg: C.greenLight,  color: C.green       } :
-    level === 'Moderate'  ? { bg: C.blueLight,   color: C.blueVivid   } :
-                            { bg: C.amberLight,  color: C.amber       };
+    level === 'High'     ? { bg: C.greenLight, color: C.green     } :
+    level === 'Moderate' ? { bg: C.blueLight,  color: C.blueVivid } :
+                            { bg: C.amberLight, color: C.amber     };
   return <Pill label={level} color={s.color} bg={s.bg} />;
 }
+
+function Stars({ count, max = 5 }) {
+  return (
+    <div style={{ display: 'flex', gap: 2 }}>
+      {Array.from({ length: max }, (_, i) => (
+        <span key={i} style={{ fontSize: 12, color: i < count ? '#F59E0B' : '#E2E8F0', lineHeight: 1 }}>★</span>
+      ))}
+    </div>
+  );
+}
+
+function ScoreRing({ value, size = 120 }) {
+  const sw = 12;
+  const r = (size - sw) / 2;
+  const circ = 2 * Math.PI * r;
+  const filled = (Math.max(0, Math.min(100, value)) / 100) * circ;
+  const col =
+    value >= 75 ? C.greenVivid :
+    value >= 60 ? C.blueVivid :
+    value >= 45 ? C.amberVivid : C.redVivid;
+  return (
+    <div style={{ position: 'relative', width: size, height: size, flexShrink: 0 }}>
+      <svg width={size} height={size} viewBox={`0 0 ${size} ${size}`} style={{ transform: 'rotate(-90deg)', display: 'block' }}>
+        <circle cx={size / 2} cy={size / 2} r={r} stroke="#E2E8F0" strokeWidth={sw} fill="none" />
+        <circle cx={size / 2} cy={size / 2} r={r} stroke={col} strokeWidth={sw} fill="none"
+          strokeLinecap="round" strokeDasharray={`${filled} ${circ}`} />
+      </svg>
+      <div style={{ position: 'absolute', inset: 0, display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center' }}>
+        <span style={{ fontSize: 32, fontWeight: 800, color: C.ink, lineHeight: 1, letterSpacing: '-0.03em' }}>{value}</span>
+        <span style={{ fontSize: 8.5, color: C.muted, fontWeight: 600, marginTop: 2, letterSpacing: '0.05em' }}>/100</span>
+      </div>
+    </div>
+  );
+}
+
+// Small labelled tile used inside the expanded Profile Summary block
+function InsightTile({ label, value, color, light, full = false }) {
+  return (
+    <div style={{
+      gridColumn: full ? '1 / -1' : 'auto',
+      padding: '10px 13px',
+      background: `linear-gradient(135deg, ${light}, #FFFFFF)`,
+      borderRadius: 8, borderLeft: `3px solid ${color}`,
+    }}>
+      <div style={{ fontSize: 7, color, fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.09em' }}>{label}</div>
+      <div style={{ fontSize: full ? 12.5 : 10.5, color: C.ink, fontWeight: 800, marginTop: 4 }}>{value}</div>
+    </div>
+  );
+}
+
+const PRIORITY_STYLE = {
+  High: { color: C.red, bg: C.redLight },
+  Medium: { color: C.amber, bg: C.amberLight },
+  Low: { color: C.green, bg: C.greenLight },
+};
+
+const big5Level = (value) => (value >= 70 ? 'High' : value >= 45 ? 'Moderate' : 'Developing');
 
 // ─── Main component ──────────────────────────────────────────────────────────
 
 export default function OnePageSummaryDocument({
   studentName = 'Student',
+  role = 'Assessment Candidate',
   rollNumber = 'N/A',
   college = 'N/A',
   branch = 'N/A',
+  collegeEmail = 'student@college.edu',
+  personalEmail = 'student@gmail.com',
   assessmentDate = '',
   overallScore = 0,
   employabilityLevel = 'Average',
   profileSummary = '',
+  archetype = { name: '', emoji: '👤' },
   bigFiveTraits = [],
   personalityHighlights = [],
   workplaceReadiness = [],
@@ -179,515 +202,417 @@ export default function OnePageSummaryDocument({
   interviewFocusAreas = [],
   hiringRecommendation = { level: 'Recommended', color: C.blueVivid, bgColor: C.blueSoft, icon: '✓' },
   hiringText = '',
-  archetype = { name: '' },
+  coreLearningStyle = '',
+  growthMindsetIndicator = '',
+  cognitiveProcessingStyle = '',
+  decisionMakingStyle = '',
 }) {
   const rec = hiringRecommendation;
 
+  const fitColorFor = (match) => (match >= 85 ? C.greenVivid : match >= 75 ? C.blueVivid : C.amberVivid);
+  const fitBgFor = (match) => (match >= 85 ? C.greenLight : match >= 75 ? C.blueLight : C.amberLight);
+  const fitLabelFor = (match) => (match >= 85 ? 'Strong' : match >= 75 ? 'Good' : 'Fair');
+
   return (
     <div style={{
-      width: 794,
+      width: 1200,
       backgroundColor: C.bg,
       fontFamily: "'Arial', 'Helvetica Neue', Helvetica, sans-serif",
       color: C.ink,
-      fontSize: 9,
-      lineHeight: 1.45,
+      fontSize: 10,
+      lineHeight: 1.55,
     }}>
 
-      {/* ══════════════════════════════════════════════════════════════
-          SECTION 1 — HEADER
-      ══════════════════════════════════════════════════════════════ */}
+      {/* ── HEADER ── */}
       <div style={{
         background: `linear-gradient(135deg, ${C.navyDark} 0%, ${C.navy} 100%)`,
-        padding: '14px 22px 0',
-        position: 'relative',
+        padding: '22px 30px 0',
       }}>
-        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', paddingBottom: 14 }}>
-
-          {/* Brand */}
-          <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
+        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', paddingBottom: 18, gap: 14 }}>
+          <div style={{ display: 'flex', alignItems: 'center', gap: 13 }}>
             <div style={{
-              width: 36, height: 36, borderRadius: 10,
+              width: 42, height: 42, borderRadius: 11,
               background: 'rgba(255,255,255,0.12)',
               border: '1.5px solid rgba(255,255,255,0.22)',
-              display: 'flex', alignItems: 'center', justifyContent: 'center',
-              flexShrink: 0,
+              display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0,
             }}>
-              <span style={{ fontSize: 17, fontWeight: 900, color: '#FFFFFF', lineHeight: 1 }}>P</span>
+              <span style={{ fontSize: 20, fontWeight: 900, color: '#FFFFFF', lineHeight: 1 }}>P</span>
             </div>
             <div>
-              <div style={{ fontSize: 17, fontWeight: 800, color: '#FFFFFF', letterSpacing: '-0.01em', lineHeight: 1.1 }}>
-                PersonaVerse
-              </div>
-              <div style={{ fontSize: 7, color: 'rgba(255,255,255,0.5)', letterSpacing: '0.14em', textTransform: 'uppercase', marginTop: 2 }}>
-                AI-Powered Psychometric Platform
-              </div>
+              <div style={{ fontSize: 19, fontWeight: 800, color: '#FFFFFF', letterSpacing: '-0.01em', lineHeight: 1.1 }}>PersonaVerse</div>
+              <div style={{ fontSize: 8, color: 'rgba(255,255,255,0.5)', letterSpacing: '0.14em', textTransform: 'uppercase', marginTop: 3 }}>AI-Powered Psychometric Platform</div>
             </div>
           </div>
 
-          {/* Report title (center) */}
           <div style={{ textAlign: 'center' }}>
-            <div style={{ fontSize: 12.5, fontWeight: 700, color: '#FFFFFF', letterSpacing: '0.06em', textTransform: 'uppercase', lineHeight: 1.2 }}>
+            <div style={{ fontSize: 14.5, fontWeight: 700, color: '#FFFFFF', letterSpacing: '0.06em', textTransform: 'uppercase', lineHeight: 1.2 }}>
               Student Intelligence Report
             </div>
-            <div style={{ fontSize: 7.5, color: 'rgba(255,255,255,0.55)', marginTop: 3, letterSpacing: '0.04em' }}>
+            <div style={{ fontSize: 8.5, color: 'rgba(255,255,255,0.55)', marginTop: 4, letterSpacing: '0.04em' }}>
               Personality Assessment &amp; Employability Analysis
             </div>
           </div>
 
-          {/* Meta right */}
           <div style={{ textAlign: 'right' }}>
-            <div style={{ fontSize: 6.5, color: 'rgba(255,255,255,0.45)', textTransform: 'uppercase', letterSpacing: '0.1em', marginBottom: 2 }}>
-              Report Date
-            </div>
-            <div style={{ fontSize: 9, color: '#FFFFFF', fontWeight: 600 }}>{assessmentDate}</div>
+            <div style={{ fontSize: 7.5, color: 'rgba(255,255,255,0.45)', textTransform: 'uppercase', letterSpacing: '0.1em', marginBottom: 3 }}>Report Date</div>
+            <div style={{ fontSize: 10.5, color: '#FFFFFF', fontWeight: 600 }}>{assessmentDate}</div>
             <div style={{
-              marginTop: 6, display: 'inline-block',
-              padding: '2px 10px', borderRadius: 20,
-              background: 'rgba(255,255,255,0.1)',
-              border: '1px solid rgba(255,255,255,0.2)',
-              fontSize: 6.5, color: 'rgba(255,255,255,0.65)', letterSpacing: '0.12em', textTransform: 'uppercase',
+              marginTop: 8, display: 'inline-block', padding: '3px 12px', borderRadius: 20,
+              background: 'rgba(255,255,255,0.1)', border: '1px solid rgba(255,255,255,0.2)',
+              fontSize: 7.5, color: 'rgba(255,255,255,0.65)', letterSpacing: '0.12em', textTransform: 'uppercase',
+            }}>Confidential</div>
+          </div>
+        </div>
+        <div style={{ height: 4, background: 'linear-gradient(90deg, #6D28D9, #2563EB, #0D9488)' }} />
+      </div>
+
+      {/* ── CONTENT (padded, bordered cards) ── */}
+      <div style={{ padding: '22px 28px', display: 'flex', flexDirection: 'column', gap: 18 }}>
+
+        {/* ROW 1 — Explorer Card · Employability Index · Profile Summary */}
+        <div style={{ display: 'flex', gap: 18, alignItems: 'stretch' }}>
+
+          {/* Explorer Card */}
+          <div style={{ ...CARD, width: 320, flexShrink: 0, backgroundColor: C.surface, padding: '18px 20px' }}>
+            <div style={{
+              width: 56, height: 56, borderRadius: '50%',
+              background: `linear-gradient(135deg, ${C.blueVivid}, ${C.navy})`,
+              display: 'flex', alignItems: 'center', justifyContent: 'center',
+              marginBottom: 13, border: `2px solid ${C.blueLight}`,
             }}>
-              Confidential
+              <span style={{ fontSize: 24, lineHeight: 1 }}>{archetype.emoji || '👤'}</span>
             </div>
+            <div style={{ fontSize: 15, fontWeight: 800, color: C.ink, marginBottom: 11, lineHeight: 1.2 }}>{studentName}</div>
+            {[
+              ['Role', role],
+              ['Roll Number', rollNumber],
+              ['College', college],
+              ['Branch', branch],
+              ['College Email', collegeEmail],
+              ['Personal Email', personalEmail],
+              ['Assessment Date', assessmentDate],
+            ].map(([lbl, val]) => (
+              <div key={lbl} style={{ marginBottom: 8 }}>
+                <div style={{ fontSize: 7, color: C.faint, textTransform: 'uppercase', letterSpacing: '0.1em', fontWeight: 700 }}>{lbl}</div>
+                <div style={{ fontSize: 9, color: C.inkSoft, fontWeight: 600, marginTop: 2, wordBreak: 'break-word' }}>{val}</div>
+              </div>
+            ))}
           </div>
-        </div>
 
-        {/* Accent stripe */}
-        <div style={{ height: 3, background: 'linear-gradient(90deg, #6D28D9, #2563EB, #0D9488)' }} />
-      </div>
-
-      {/* ══════════════════════════════════════════════════════════════
-          SECTION 2 — PROFILE OVERVIEW
-      ══════════════════════════════════════════════════════════════ */}
-      <div style={{ display: 'flex', borderBottom: `1.5px solid ${C.border}` }}>
-
-        {/* LEFT — student info */}
-        <div style={{
-          width: '26%',
-          backgroundColor: C.surface,
-          padding: '14px 16px',
-          borderRight: `1px solid ${C.border}`,
-          flexShrink: 0,
-        }}>
-          {/* Avatar */}
+          {/* Employability Index */}
           <div style={{
-            width: 52, height: 52, borderRadius: '50%',
-            background: `linear-gradient(135deg, ${C.blueVivid}, ${C.navy})`,
-            display: 'flex', alignItems: 'center', justifyContent: 'center',
-            marginBottom: 10,
-            border: `3px solid ${C.blueLight}`,
+            ...CARD, width: 248, flexShrink: 0, padding: '18px 16px',
+            display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center',
+            background: `linear-gradient(180deg, ${C.bg} 0%, ${C.bluePale} 100%)`,
           }}>
-            <span style={{ fontSize: 22, lineHeight: 1 }}>👤</span>
-          </div>
-
-          {/* Name */}
-          <div style={{ fontSize: 13, fontWeight: 800, color: C.ink, marginBottom: 1, lineHeight: 1.2 }}>{studentName}</div>
-          <div style={{ fontSize: 7, color: C.muted, marginBottom: 10, fontWeight: 500 }}>Assessment Candidate</div>
-
-          {/* Info rows */}
-          {[
-            ['Roll Number', rollNumber],
-            ['College', college],
-            ['Branch', branch],
-            ['Assessment Date', assessmentDate],
-          ].map(([lbl, val]) => (
-            <div key={lbl} style={{ marginBottom: 7 }}>
-              <div style={{ fontSize: 6, color: C.faint, textTransform: 'uppercase', letterSpacing: '0.1em', fontWeight: 700 }}>{lbl}</div>
-              <div style={{ fontSize: 8, color: C.inkSoft, fontWeight: 600, marginTop: 1.5 }}>{val}</div>
+            <div style={{ fontSize: 8, fontWeight: 700, color: C.muted, textTransform: 'uppercase', letterSpacing: '0.1em', marginBottom: 14, textAlign: 'center' }}>
+              Overall Employability Index
             </div>
-          ))}
-        </div>
-
-        {/* CENTER — employability score */}
-        <div style={{
-          width: '26%',
-          padding: '16px 12px',
-          display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center',
-          borderRight: `1px solid ${C.border}`,
-          flexShrink: 0,
-          background: `linear-gradient(180deg, ${C.bg} 0%, ${C.bluePale} 100%)`,
-        }}>
-          <div style={{ fontSize: 7, fontWeight: 700, color: C.muted, textTransform: 'uppercase', letterSpacing: '0.1em', marginBottom: 10, textAlign: 'center' }}>
-            Overall Employability Index
-          </div>
-
-          <ScoreRing value={overallScore} size={108} />
-
-          <div style={{ marginTop: 11, textAlign: 'center' }}>
-            <div style={{ fontSize: 11, fontWeight: 800, color: C.navy, letterSpacing: '-0.01em' }}>{employabilityLevel}</div>
-            <div style={{ marginTop: 6 }}>
-              <span style={{
-                display: 'inline-block', padding: '4px 12px', borderRadius: 20,
-                backgroundColor: rec.bgColor, color: rec.color,
-                fontSize: 7.5, fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.07em',
-                border: `1px solid ${rec.color}30`,
-              }}>
-                {rec.icon} {rec.level}
-              </span>
-            </div>
-          </div>
-        </div>
-
-        {/* RIGHT — profile summary */}
-        <div style={{ flex: 1, padding: '14px 16px' }}>
-          <div style={{ fontSize: 6.5, fontWeight: 700, color: C.muted, textTransform: 'uppercase', letterSpacing: '0.1em', marginBottom: 7 }}>
-            Profile Summary
-          </div>
-          <div style={{ fontSize: 8.5, lineHeight: 1.6, color: C.inkSoft }}>{profileSummary}</div>
-
-          {/* Archetype pill */}
-          <div style={{
-            marginTop: 10, padding: '8px 11px',
-            background: `linear-gradient(135deg, ${C.blueSoft}, ${C.bluePale})`,
-            borderRadius: 8,
-            borderLeft: `3px solid ${C.blueVivid}`,
-          }}>
-            <div style={{ fontSize: 6.5, color: C.blueVivid, fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.09em' }}>
-              Primary Archetype
-            </div>
-            <div style={{ fontSize: 10, color: C.navy, fontWeight: 800, marginTop: 2 }}>{archetype.name}</div>
-          </div>
-        </div>
-      </div>
-
-      {/* ══════════════════════════════════════════════════════════════
-          SECTIONS 3 + 4 — BIG FIVE  +  PERSONALITY HIGHLIGHTS
-      ══════════════════════════════════════════════════════════════ */}
-      <div style={{ display: 'flex', borderBottom: `1.5px solid ${C.border}` }}>
-
-        {/* Big Five */}
-        <div style={{ width: '54%', padding: '12px 16px', borderRight: `1px solid ${C.border}`, flexShrink: 0 }}>
-          <SecHead label="Big Five Personality Traits" />
-
-          {bigFiveTraits.map((trait, i) => {
-            const pal = BIG5_PALETTE[i] || BIG5_PALETTE[0];
-            return (
-              <div key={trait.key} style={{ marginBottom: 9 }}>
-                {/* Trait header row */}
-                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 4 }}>
-                  <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
-                    {/* Color swatch */}
-                    <div style={{
-                      width: 18, height: 18, borderRadius: 5,
-                      backgroundColor: pal.light,
-                      border: `1.5px solid ${pal.color}40`,
-                      display: 'flex', alignItems: 'center', justifyContent: 'center',
-                      flexShrink: 0,
-                    }}>
-                      <div style={{ width: 7, height: 7, borderRadius: '50%', backgroundColor: pal.color }} />
-                    </div>
-                    <span style={{ fontSize: 9, fontWeight: 700, color: C.inkMid }}>{trait.label}</span>
-                  </div>
-                  <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
-                    <span style={{ fontSize: 7, color: C.muted, fontWeight: 500 }}>{trait.value}th percentile</span>
-                    <LevelBadge level={trait.level} />
-                  </div>
-                </div>
-
-                {/* Progress bar */}
-                <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
-                  <div style={{ flex: 1 }}>
-                    <HBar value={trait.value} color={pal.color} height={7} bg={pal.light} />
-                  </div>
-                  <span style={{
-                    fontSize: 7.5, fontWeight: 800, color: pal.color,
-                    width: 26, textAlign: 'right', flexShrink: 0,
-                  }}>
-                    {trait.value}
-                  </span>
-                </div>
-              </div>
-            );
-          })}
-        </div>
-
-        {/* Personality Highlights */}
-        <div style={{ flex: 1, padding: '12px 14px' }}>
-          <SecHead label="Personality Highlights" accent={C.purpleVivid} />
-          {personalityHighlights.slice(0, 5).map((s, i) => (
-            <div key={i} style={{
-              display: 'flex', alignItems: 'flex-start', gap: 8, marginBottom: 8,
-              padding: '5px 8px', borderRadius: 7,
-              backgroundColor: i % 2 === 0 ? C.surface : C.bg,
-              borderLeft: `2.5px solid ${BIG5_PALETTE[i % 5].color}`,
-            }}>
-              <span style={{ fontSize: 14, lineHeight: 1, flexShrink: 0, marginTop: 1 }}>{s.emoji}</span>
-              <div>
-                <div style={{ fontSize: 8.5, fontWeight: 700, color: C.inkMid }}>{s.title}</div>
-                <div style={{ fontSize: 7, color: C.muted, lineHeight: 1.45, marginTop: 1 }}>{s.desc}</div>
-              </div>
-            </div>
-          ))}
-        </div>
-      </div>
-
-      {/* ══════════════════════════════════════════════════════════════
-          SECTIONS 5 + 6 + 7 + 8 — WORKPLACE  ·  ROLE FIT  ·  STRENGTHS  ·  DEV
-      ══════════════════════════════════════════════════════════════ */}
-      <div style={{ display: 'flex', borderBottom: `1.5px solid ${C.border}` }}>
-
-        {/* Workplace Readiness */}
-        <div style={{ width: '28%', padding: '12px 14px', borderRight: `1px solid ${C.border}`, flexShrink: 0 }}>
-          <SecHead label="Workplace Readiness" accent={C.tealVivid} />
-          {workplaceReadiness.map((item) => (
-            <div key={item.key} style={{ marginBottom: 7 }}>
-              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 2.5 }}>
-                <span style={{ fontSize: 7.5, color: C.inkSoft, fontWeight: 500 }}>{item.label}</span>
-                <Stars count={item.stars} />
-              </div>
-              <HBar value={(item.stars / 5) * 100} color={C.tealVivid} height={3} bg={C.tealLight} />
-            </div>
-          ))}
-        </div>
-
-        {/* Role Fit Analysis */}
-        <div style={{ width: '40%', padding: '12px 13px', borderRight: `1px solid ${C.border}`, flexShrink: 0 }}>
-          <SecHead label="Role Fit Analysis" accent={C.blueVivid} />
-
-          {/* Column headers */}
-          <div style={{ display: 'flex', alignItems: 'center', gap: 4, marginBottom: 5,
-            padding: '3px 7px', backgroundColor: C.surface, borderRadius: 5 }}>
-            <span style={{ flex: 1, fontSize: 6.5, fontWeight: 700, color: C.muted, textTransform: 'uppercase', letterSpacing: '0.07em' }}>Role</span>
-            <span style={{ width: 80, fontSize: 6.5, fontWeight: 700, color: C.muted, textTransform: 'uppercase', letterSpacing: '0.07em' }}>Score</span>
-            <span style={{ width: 32, fontSize: 6.5, fontWeight: 700, color: C.muted, textTransform: 'uppercase', letterSpacing: '0.07em', textAlign: 'right' }}>Fit</span>
-          </div>
-
-          {careerMatches.slice(0, 8).map((career) => {
-            const fitColor = career.match >= 85 ? C.greenVivid : career.match >= 75 ? C.blueVivid : C.amberVivid;
-            const fitBg    = career.match >= 85 ? C.greenLight  : career.match >= 75 ? C.blueLight  : C.amberLight;
-            const fitLabel = career.match >= 85 ? 'Strong' : career.match >= 75 ? 'Good' : 'Fair';
-            return (
-              <div key={career.title} style={{
-                display: 'flex', alignItems: 'center', gap: 4, marginBottom: 4.5,
-                padding: '3px 7px', borderRadius: 5,
-              }}>
-                <span style={{ fontSize: 10, lineHeight: 1, flexShrink: 0, width: 14 }}>{career.emoji}</span>
-                <span style={{ flex: 1, fontSize: 8, fontWeight: 600, color: C.inkMid }}>{career.title}</span>
-                <div style={{ width: 80, display: 'flex', alignItems: 'center', gap: 4 }}>
-                  <div style={{ flex: 1 }}>
-                    <HBar value={career.match} color={fitColor} height={4} bg={C.surfaceAlt} />
-                  </div>
-                  <span style={{ fontSize: 8, fontWeight: 700, color: fitColor, width: 22, textAlign: 'right', flexShrink: 0 }}>{career.match}%</span>
-                </div>
-                <div style={{ width: 32, textAlign: 'right', flexShrink: 0 }}>
-                  <Pill label={fitLabel} color={fitColor} bg={fitBg} />
-                </div>
-              </div>
-            );
-          })}
-        </div>
-
-        {/* Strengths + Development */}
-        <div style={{ flex: 1, padding: '12px 13px' }}>
-          <SecHead label="Top Strengths" accent={C.greenVivid} />
-          {topStrengths.slice(0, 4).map((s, i) => (
-            <div key={i} style={{ display: 'flex', alignItems: 'flex-start', gap: 6, marginBottom: 6 }}>
-              <div style={{
-                width: 16, height: 16, borderRadius: '50%',
-                backgroundColor: C.greenBg,
-                border: `1.5px solid ${C.greenLight}`,
-                display: 'flex', alignItems: 'center', justifyContent: 'center',
-                flexShrink: 0, marginTop: 0.5,
-              }}>
-                <span style={{ fontSize: 8, color: C.green, lineHeight: 1, fontWeight: 700 }}>✓</span>
-              </div>
-              <div>
-                <div style={{ fontSize: 8, fontWeight: 700, color: C.inkMid }}>{s.title}</div>
-                <div style={{ fontSize: 6.5, color: C.muted, lineHeight: 1.4 }}>{s.desc}</div>
-              </div>
-            </div>
-          ))}
-
-          <div style={{ marginTop: 9, paddingTop: 8, borderTop: `1px dashed ${C.border}` }}>
-            <SecHead label="Development Areas" accent={C.orangeVivid} />
-            {developmentAreas.slice(0, 3).map((area) => (
-              <div key={area.key} style={{ display: 'flex', alignItems: 'flex-start', gap: 6, marginBottom: 5.5 }}>
-                <div style={{
-                  width: 16, height: 16, borderRadius: '50%',
-                  backgroundColor: C.orangeBg,
-                  border: `1.5px solid ${C.orangeLight}`,
-                  display: 'flex', alignItems: 'center', justifyContent: 'center',
-                  flexShrink: 0, marginTop: 0.5,
+            <ScoreRing value={overallScore} size={120} />
+            <div style={{ marginTop: 14, textAlign: 'center' }}>
+              <div style={{ fontSize: 13, fontWeight: 800, color: C.navy, letterSpacing: '-0.01em' }}>{employabilityLevel}</div>
+              <div style={{ marginTop: 8 }}>
+                <span style={{
+                  display: 'inline-block', padding: '5px 14px', borderRadius: 20,
+                  backgroundColor: rec.bgColor, color: rec.color,
+                  fontSize: 8.5, fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.07em',
+                  border: `1px solid ${rec.color}30`,
                 }}>
-                  <span style={{ fontSize: 8, color: C.orangeVivid, lineHeight: 1, fontWeight: 700 }}>!</span>
+                  {rec.icon} {rec.level}
+                </span>
+              </div>
+            </div>
+          </div>
+
+          {/* Profile Summary */}
+          <div style={{ ...CARD, flex: 1, padding: '18px 22px' }}>
+            <div style={{ fontSize: 7.5, fontWeight: 700, color: C.muted, textTransform: 'uppercase', letterSpacing: '0.1em', marginBottom: 10 }}>Profile Summary</div>
+            <div style={{ fontSize: 9.5, lineHeight: 1.7, color: C.inkSoft, marginBottom: 14 }}>{profileSummary}</div>
+
+            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 10 }}>
+              <InsightTile full label="Primary Archetype" value={archetype.name} color={C.blueVivid} light={C.blueSoft} />
+              {coreLearningStyle ? (
+                <InsightTile label="Core Learning Style" value={coreLearningStyle} color={C.tealVivid} light={C.tealLight} />
+              ) : null}
+              {growthMindsetIndicator ? (
+                <InsightTile label="Growth Mindset Indicator" value={growthMindsetIndicator} color={C.purpleVivid} light={C.purpleLight} />
+              ) : null}
+              {cognitiveProcessingStyle ? (
+                <InsightTile label="Cognitive Processing Style" value={cognitiveProcessingStyle} color={C.skyVivid} light={C.skyLight} />
+              ) : null}
+              {decisionMakingStyle ? (
+                <InsightTile label="Decision Making Style" value={decisionMakingStyle} color={C.roseVivid} light={C.roseLight} />
+              ) : null}
+            </div>
+          </div>
+        </div>
+
+        {/* ROW 2 — Big Five Traits · Personality Highlights */}
+        <div style={{ display: 'flex', gap: 18, alignItems: 'stretch' }}>
+
+          {/* Big Five Traits */}
+          <div style={{ ...CARD, width: 640, flexShrink: 0, padding: '20px 24px' }}>
+            <SecHead label="Big Five Personality Traits" />
+            {bigFiveTraits.map((trait, i) => {
+              const pal = BIG5_PALETTE[i] || BIG5_PALETTE[0];
+              const level = big5Level(trait.value);
+              return (
+                <div key={trait.key} style={{ marginBottom: i < bigFiveTraits.length - 1 ? 16 : 0 }}>
+                  <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 6 }}>
+                    <div style={{ display: 'flex', alignItems: 'center', gap: 9 }}>
+                      <div style={{
+                        width: 24, height: 24, borderRadius: 6,
+                        backgroundColor: pal.light, border: `1.5px solid ${pal.color}40`,
+                        display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0,
+                      }}>
+                        <div style={{ width: 9, height: 9, borderRadius: '50%', backgroundColor: pal.color }} />
+                      </div>
+                      <span style={{ fontSize: 11, fontWeight: 700, color: C.inkMid }}>{trait.label}</span>
+                      <span style={{ fontSize: 7.5, color: C.faint, fontWeight: 700, letterSpacing: '0.08em' }}>{trait.abbr}</span>
+                    </div>
+                    <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+                      <span style={{ fontSize: 8, color: C.muted, fontWeight: 500 }}>{trait.value}th percentile</span>
+                      <LevelBadge level={level} />
+                    </div>
+                  </div>
+                  <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+                    <div style={{ flex: 1 }}>
+                      <HBar value={trait.value} color={pal.color} height={9} bg={pal.light} />
+                    </div>
+                    <span style={{ fontSize: 9, fontWeight: 800, color: pal.color, width: 30, textAlign: 'right', flexShrink: 0 }}>
+                      {trait.value}
+                    </span>
+                  </div>
+                  {trait.desc ? (
+                    <div style={{ fontSize: 8, color: C.faint, marginTop: 4, lineHeight: 1.5 }}>{trait.desc}</div>
+                  ) : null}
                 </div>
+              );
+            })}
+          </div>
+
+          {/* Personality Highlights */}
+          <div style={{ ...CARD, flex: 1, padding: '20px 22px' }}>
+            <SecHead label="Personality Highlights" accent={C.purpleVivid} />
+            {personalityHighlights.slice(0, 5).map((s, i) => (
+              <div key={i} style={{
+                display: 'flex', alignItems: 'flex-start', gap: 11,
+                marginBottom: i < personalityHighlights.length - 1 ? 11 : 0,
+                padding: '10px 13px', borderRadius: 8,
+                backgroundColor: i % 2 === 0 ? C.surface : C.bg,
+                borderLeft: `3px solid ${BIG5_PALETTE[i % 5].color}`,
+              }}>
+                <span style={{ fontSize: 17, lineHeight: 1, flexShrink: 0, marginTop: 1 }}>{s.emoji}</span>
                 <div>
-                  <div style={{ fontSize: 8, fontWeight: 700, color: C.inkMid }}>{area.label}</div>
-                  <div style={{ fontSize: 6.5, color: C.muted, lineHeight: 1.4 }}>{area.action}</div>
+                  <div style={{ fontSize: 9.5, fontWeight: 700, color: C.inkMid }}>{s.title}</div>
+                  <div style={{ fontSize: 8, color: C.muted, lineHeight: 1.55, marginTop: 2 }}>{s.desc}</div>
                 </div>
               </div>
             ))}
           </div>
         </div>
+
+        {/* ROW 3 — Workplace Readiness · Top Strengths · Development Areas */}
+        <div style={{ display: 'flex', gap: 18, alignItems: 'stretch' }}>
+
+          {/* Workplace Readiness */}
+          <div style={{ ...CARD, flex: 1, padding: '16px 18px' }}>
+            <SecHead label="Workplace Readiness" accent={C.tealVivid} />
+            {workplaceReadiness.map((item, i) => (
+              <div key={item.key} style={{ marginBottom: i < workplaceReadiness.length - 1 ? 11 : 0 }}>
+                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 4 }}>
+                  <span style={{ fontSize: 9, color: C.inkSoft, fontWeight: 600 }}>{item.label}</span>
+                  <Stars count={item.stars} />
+                </div>
+                <HBar value={(item.stars / 5) * 100} color={C.tealVivid} height={5} bg={C.tealLight} />
+              </div>
+            ))}
+          </div>
+
+          {/* Top Strengths */}
+          <div style={{ ...CARD, flex: 1, padding: '16px 18px' }}>
+            <SecHead label="Top Strengths" accent={C.greenVivid} />
+            <div style={{ display: 'flex', flexDirection: 'column', gap: 11 }}>
+              {topStrengths.slice(0, 4).map((s, i) => (
+                <div key={i} style={{ display: 'flex', alignItems: 'flex-start', gap: 9 }}>
+                  <div style={{
+                    width: 19, height: 19, borderRadius: '50%',
+                    backgroundColor: C.greenBg, border: `1.5px solid ${C.greenLight}`,
+                    display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0, marginTop: 0.5,
+                  }}>
+                    <span style={{ fontSize: 9.5, color: C.green, lineHeight: 1, fontWeight: 700 }}>✓</span>
+                  </div>
+                  <div>
+                    <div style={{ fontSize: 9, fontWeight: 700, color: C.inkMid }}>{s.title}</div>
+                    <div style={{ fontSize: 8, color: C.muted, lineHeight: 1.5 }}>{s.desc}</div>
+                  </div>
+                </div>
+              ))}
+            </div>
+          </div>
+
+          {/* Development Areas */}
+          <div style={{ ...CARD, flex: 1, padding: '16px 18px' }}>
+            <SecHead label="Development Areas" accent={C.orangeVivid} />
+            <div style={{ display: 'flex', flexDirection: 'column', gap: 11 }}>
+              {developmentAreas.slice(0, 3).map((area) => {
+                const pri = PRIORITY_STYLE[area.priority] || PRIORITY_STYLE.Medium;
+                return (
+                  <div key={area.key} style={{ display: 'flex', alignItems: 'flex-start', gap: 9 }}>
+                    <div style={{
+                      width: 19, height: 19, borderRadius: '50%',
+                      backgroundColor: C.orangeBg, border: `1.5px solid ${C.orangeLight}`,
+                      display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0, marginTop: 0.5,
+                    }}>
+                      <span style={{ fontSize: 9.5, color: C.orangeVivid, lineHeight: 1, fontWeight: 700 }}>!</span>
+                    </div>
+                    <div style={{ flex: 1 }}>
+                      <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 2 }}>
+                        <span style={{ fontSize: 9, fontWeight: 700, color: C.inkMid }}>{area.label}</span>
+                        {area.priority ? <Pill label={`${area.priority} Priority`} color={pri.color} bg={pri.bg} /> : null}
+                      </div>
+                      <div style={{ fontSize: 8, color: C.muted, lineHeight: 1.5 }}>{area.action}</div>
+                    </div>
+                  </div>
+                );
+              })}
+            </div>
+          </div>
+        </div>
+
+        {/* ROW 4 — Role Fit Analysis (full width, one row per role) */}
+        <div style={{ ...CARD, padding: '20px 24px' }}>
+          <SecHead label="Role Fit Analysis" accent={C.blueVivid} />
+          <div style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
+            {careerMatches.slice(0, 6).map((career) => {
+              const fitColor = fitColorFor(career.match);
+              const fitBg = fitBgFor(career.match);
+              const fitLabel = fitLabelFor(career.match);
+              return (
+                <div key={career.title} style={{
+                  display: 'flex', alignItems: 'center', gap: 16,
+                  padding: '12px 16px', borderRadius: 8, backgroundColor: C.surface,
+                }}>
+                  <span style={{ fontSize: 20, lineHeight: 1, flexShrink: 0, width: 26 }}>{career.emoji}</span>
+                  <span style={{ flex: '0 0 230px', fontSize: 10.5, fontWeight: 700, color: C.inkMid }}>{career.title}</span>
+                  <div style={{ flex: 1 }}>
+                    <HBar value={career.match} color={fitColor} height={10} bg={C.surfaceAlt} />
+                  </div>
+                  <span style={{ fontSize: 11, fontWeight: 800, color: fitColor, width: 50, textAlign: 'right', flexShrink: 0 }}>{career.match}%</span>
+                  <div style={{ width: 78, textAlign: 'right', flexShrink: 0 }}>
+                    <Pill label={fitLabel} color={fitColor} bg={fitBg} />
+                  </div>
+                </div>
+              );
+            })}
+          </div>
+        </div>
+
+        {/* ROW 5 — Interview Focus Areas (2x2 large cards) */}
+        <div style={{ ...CARD, padding: '20px 24px' }}>
+          <SecHead label="Interview Focus Areas" accent={C.skyVivid} />
+          <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 16 }}>
+            {interviewFocusAreas.map((area, i) => {
+              const isStrength = area.type === 'strength';
+              const col = isStrength ? C.tealVivid : C.skyVivid;
+              const bg = isStrength ? C.tealLight : C.skyLight;
+              return (
+                <div key={area.title + i} style={{
+                  padding: '18px 20px',
+                  backgroundColor: bg, borderRadius: 10, borderLeft: `4px solid ${col}`,
+                }}>
+                  <div style={{ fontSize: 9, fontWeight: 800, color: col, textTransform: 'uppercase', letterSpacing: '0.09em', marginBottom: 8 }}>
+                    {area.title}
+                  </div>
+                  <div style={{ fontSize: 9.5, color: C.inkSoft, lineHeight: 1.7 }}>{area.note}</div>
+                </div>
+              );
+            })}
+          </div>
+        </div>
+
+        {/* ROW 6 — Preference Indicators (equal-width horizontal cards) */}
+        <div style={{ ...CARD, padding: '20px 24px', backgroundColor: C.surface }}>
+          <SecHead label="Preference Indicators" accent={C.indigoVivid} />
+          <div style={{ display: 'flex', gap: 14 }}>
+            {preferenceIndicators.map((pref) => (
+              <div key={pref.dimension} style={{
+                flex: 1, padding: '16px 18px', backgroundColor: C.bg, borderRadius: 10,
+                border: `1px solid ${C.border}`, borderTop: `4px solid ${C.indigoVivid}`,
+              }}>
+                <div style={{ fontSize: 7.5, color: C.faint, textTransform: 'uppercase', letterSpacing: '0.1em', fontWeight: 700 }}>{pref.dimension}</div>
+                <div style={{ fontSize: 13.5, color: C.inkMid, fontWeight: 800, marginTop: 6 }}>{pref.label}</div>
+                {pref.desc ? (
+                  <div style={{ fontSize: 8.5, color: C.muted, marginTop: 7, lineHeight: 1.65 }}>{pref.desc}</div>
+                ) : null}
+              </div>
+            ))}
+          </div>
+        </div>
+
+        {/* ROW 7 — Hiring Recommendation (full-width banner) */}
+        <div style={{
+          ...CARD,
+          padding: '22px 26px',
+          display: 'flex', alignItems: 'center', gap: 24,
+          background: `linear-gradient(135deg, ${rec.bgColor}, ${C.bg})`,
+          borderLeft: `6px solid ${rec.color}`,
+        }}>
+          <div style={{
+            width: 72, height: 72, borderRadius: '50%', backgroundColor: rec.color,
+            display: 'flex', alignItems: 'center', justifyContent: 'center',
+            flexShrink: 0, border: `3px solid ${rec.color}40`, boxShadow: `0 0 0 5px ${rec.bgColor}`,
+          }}>
+            <span style={{ fontSize: 30, color: '#FFFFFF', lineHeight: 1 }}>{rec.icon}</span>
+          </div>
+          <div style={{ flex: 1 }}>
+            <div style={{ fontSize: 8, fontWeight: 700, color: C.muted, textTransform: 'uppercase', letterSpacing: '0.14em', marginBottom: 5 }}>Hiring Recommendation</div>
+            <div style={{ fontSize: 22, fontWeight: 800, color: rec.color, letterSpacing: '-0.02em', marginBottom: 7, lineHeight: 1 }}>{rec.level}</div>
+            <div style={{ fontSize: 10, color: C.inkSoft, lineHeight: 1.65, maxWidth: 760 }}>{hiringText}</div>
+          </div>
+          <div style={{
+            textAlign: 'center', padding: '12px 26px', backgroundColor: C.bg, borderRadius: 10,
+            border: `1.5px solid ${C.border}`, flexShrink: 0,
+          }}>
+            <div style={{ fontSize: 36, fontWeight: 900, color: rec.color, lineHeight: 1, letterSpacing: '-0.03em' }}>{overallScore}</div>
+            <div style={{ fontSize: 7.5, color: C.muted, fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.1em', marginTop: 4 }}>Overall Score</div>
+          </div>
+        </div>
+
       </div>
 
-      {/* ══════════════════════════════════════════════════════════════
-          SECTION 9 — PREFERENCE INDICATORS
-      ══════════════════════════════════════════════════════════════ */}
-      <div style={{ padding: '11px 16px', borderBottom: `1.5px solid ${C.border}`, backgroundColor: C.surface }}>
-        <SecHead label="Preference Indicators" accent={C.indigoVivid} />
-        <div style={{ display: 'flex', gap: 8 }}>
-          {preferenceIndicators.map((pref) => (
-            <div key={pref.label} style={{
-              flex: 1,
-              padding: '7px 10px',
-              backgroundColor: C.bg,
-              borderRadius: 8,
-              borderTop: `3px solid ${C.indigoVivid}`,
-              border: `1px solid ${C.border}`,
-              borderTopWidth: 3,
-              borderTopColor: C.indigoVivid,
-            }}>
-              <div style={{ fontSize: 6, color: C.faint, textTransform: 'uppercase', letterSpacing: '0.1em', fontWeight: 700 }}>{pref.label}</div>
-              <div style={{ fontSize: 8.5, color: C.inkMid, fontWeight: 700, marginTop: 3 }}>{pref.value}</div>
+      {/* ── FOOTER (3-column layout) ── */}
+      <div style={{ background: `linear-gradient(135deg, ${C.navyDark} 0%, ${C.navy} 100%)`, padding: '22px 28px 18px' }}>
+        <div style={{ display: 'flex', gap: 32, marginBottom: 14 }}>
+          {[
+            {
+              title: 'Assessment Details',
+              body: `Assessment: PersonaVerse Personality Index\nDate: ${assessmentDate}\nStudent: ${studentName}`,
+            },
+            {
+              title: 'Percentile Guide',
+              body: '■ 70–100 · High Proficiency\n■ 45–69 · Moderate Proficiency\n■ 0–44 · Developing Stage',
+            },
+            {
+              title: 'About This Report',
+              body: 'Derived from the PersonaVerse Psychometric Assessment using validated Big Five methodology. For academic and institutional use. © 2026 PersonaVerse.',
+            },
+          ].map((col) => (
+            <div key={col.title} style={{ flex: 1 }}>
+              <div style={{
+                fontSize: 8, fontWeight: 800, color: '#FFFFFF',
+                textTransform: 'uppercase', letterSpacing: '0.1em', marginBottom: 8,
+                paddingBottom: 7, borderBottom: '1px solid rgba(255,255,255,0.12)',
+              }}>
+                {col.title}
+              </div>
+              <div style={{ fontSize: 8.5, color: 'rgba(255,255,255,0.6)', lineHeight: 1.85, whiteSpace: 'pre-line' }}>
+                {col.body}
+              </div>
             </div>
           ))}
         </div>
-      </div>
-
-      {/* ══════════════════════════════════════════════════════════════
-          SECTION 10 — INTERVIEW FOCUS AREAS
-      ══════════════════════════════════════════════════════════════ */}
-      <div style={{ padding: '11px 16px', borderBottom: `1.5px solid ${C.border}` }}>
-        <SecHead label="Interview Focus Areas" accent={C.skyVivid} />
-        <div style={{ display: 'flex', gap: 8 }}>
-          {interviewFocusAreas.map((area, i) => {
-            const palette = [C.blueVivid, C.purpleVivid, C.tealVivid, C.indigoVivid];
-            const palLight = [C.blueSoft, C.purpleLight, C.tealLight, C.indigoLight];
-            const col = palette[i % palette.length];
-            const bg  = palLight[i % palLight.length];
-            return (
-              <div key={area.title} style={{
-                flex: 1,
-                padding: '8px 10px',
-                backgroundColor: bg,
-                borderRadius: 8,
-                borderLeft: `3px solid ${col}`,
-              }}>
-                <div style={{
-                  fontSize: 7, fontWeight: 800, color: col,
-                  textTransform: 'uppercase', letterSpacing: '0.08em', marginBottom: 4,
-                }}>
-                  {area.title}
-                </div>
-                <div style={{ fontSize: 7.5, color: C.inkSoft, lineHeight: 1.5 }}>{area.note}</div>
-              </div>
-            );
-          })}
-        </div>
-      </div>
-
-      {/* ══════════════════════════════════════════════════════════════
-          SECTION 11 — HIRING RECOMMENDATION
-      ══════════════════════════════════════════════════════════════ */}
-      <div style={{
-        padding: '13px 16px',
-        background: `linear-gradient(135deg, ${rec.bgColor}, ${C.bg})`,
-        borderBottom: `1.5px solid ${C.border}`,
-        borderLeft: `5px solid ${rec.color}`,
-      }}>
-        <div style={{ display: 'flex', alignItems: 'center', gap: 16 }}>
-
-          {/* Recommendation circle */}
-          <div style={{
-            width: 64, height: 64, borderRadius: '50%',
-            backgroundColor: rec.color,
-            display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center',
-            flexShrink: 0,
-            border: `3px solid ${rec.color}40`,
-            boxShadow: `0 0 0 4px ${rec.bgColor}`,
-          }}>
-            <span style={{ fontSize: 26, color: '#FFFFFF', lineHeight: 1 }}>{rec.icon}</span>
-          </div>
-
-          {/* Text block */}
-          <div style={{ flex: 1 }}>
-            <div style={{ fontSize: 6.5, fontWeight: 700, color: C.muted, textTransform: 'uppercase', letterSpacing: '0.12em', marginBottom: 3 }}>
-              Hiring Recommendation
-            </div>
-            <div style={{ fontSize: 16, fontWeight: 800, color: rec.color, letterSpacing: '-0.02em', marginBottom: 5, lineHeight: 1 }}>
-              {rec.level}
-            </div>
-            <div style={{ fontSize: 8.5, color: C.inkSoft, lineHeight: 1.6, maxWidth: 620 }}>{hiringText}</div>
-          </div>
-
-          {/* Score badge */}
-          <div style={{
-            textAlign: 'center', padding: '10px 16px',
-            backgroundColor: C.bg, borderRadius: 10,
-            border: `1.5px solid ${C.border}`,
-            flexShrink: 0,
-          }}>
-            <div style={{ fontSize: 28, fontWeight: 900, color: rec.color, lineHeight: 1, letterSpacing: '-0.03em' }}>{overallScore}</div>
-            <div style={{ fontSize: 6.5, color: C.muted, fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.08em', marginTop: 2 }}>Overall Score</div>
-          </div>
-        </div>
-      </div>
-
-      {/* ══════════════════════════════════════════════════════════════
-          SECTION 12 — FOOTER
-      ══════════════════════════════════════════════════════════════ */}
-      <div style={{
-        background: `linear-gradient(135deg, ${C.navyDark} 0%, ${C.navy} 100%)`,
-        padding: '12px 22px 11px',
-      }}>
-        {/* 3-column info */}
-        <div style={{ display: 'flex', gap: 20, marginBottom: 9 }}>
-
-          <div style={{ flex: 1 }}>
-            <div style={{
-              fontSize: 7, fontWeight: 800, color: '#FFFFFF',
-              textTransform: 'uppercase', letterSpacing: '0.1em', marginBottom: 5,
-              paddingBottom: 4, borderBottom: '1px solid rgba(255,255,255,0.12)',
-            }}>
-              Assessment Details
-            </div>
-            <div style={{ fontSize: 7, color: 'rgba(255,255,255,0.6)', lineHeight: 1.75 }}>
-              Assessment: PersonaVerse Personality Index<br />
-              Date: {assessmentDate}<br />
-              Student: {studentName}
-            </div>
-          </div>
-
-          <div style={{ flex: 1 }}>
-            <div style={{
-              fontSize: 7, fontWeight: 800, color: '#FFFFFF',
-              textTransform: 'uppercase', letterSpacing: '0.1em', marginBottom: 5,
-              paddingBottom: 4, borderBottom: '1px solid rgba(255,255,255,0.12)',
-            }}>
-              Percentile Guide
-            </div>
-            <div style={{ fontSize: 7, color: 'rgba(255,255,255,0.6)', lineHeight: 1.75 }}>
-              <span style={{ color: '#86EFAC' }}>■</span> 70–100 · High Proficiency<br />
-              <span style={{ color: '#93C5FD' }}>■</span> 45–69 · Moderate Proficiency<br />
-              <span style={{ color: '#FCA5A5' }}>■</span> 0–44 · Developing Stage
-            </div>
-          </div>
-
-          <div style={{ flex: 1 }}>
-            <div style={{
-              fontSize: 7, fontWeight: 800, color: '#FFFFFF',
-              textTransform: 'uppercase', letterSpacing: '0.1em', marginBottom: 5,
-              paddingBottom: 4, borderBottom: '1px solid rgba(255,255,255,0.12)',
-            }}>
-              About This Report
-            </div>
-            <div style={{ fontSize: 7, color: 'rgba(255,255,255,0.6)', lineHeight: 1.75 }}>
-              Derived from the PersonaVerse Psychometric Assessment using validated Big Five methodology. For academic and institutional use. © 2026 PersonaVerse.
-            </div>
-          </div>
-        </div>
-
-        {/* Quote */}
-        <div style={{
-          borderTop: '1px solid rgba(255,255,255,0.1)',
-          paddingTop: 8,
-          textAlign: 'center',
-          fontSize: 7.5,
-          color: 'rgba(255,255,255,0.4)',
-          fontStyle: 'italic',
-          letterSpacing: '0.01em',
-        }}>
+        <div style={{ borderTop: '1px solid rgba(255,255,255,0.1)', paddingTop: 12, textAlign: 'center', fontSize: 8.5, color: 'rgba(255,255,255,0.4)', fontStyle: 'italic', letterSpacing: '0.01em' }}>
           "The best investment you can make is an investment in yourself. The more you learn, the more you earn." — Warren Buffett
         </div>
       </div>

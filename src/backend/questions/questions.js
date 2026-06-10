@@ -505,17 +505,6 @@ export const questions = [
 export default questions;
 
 // ─────────────────────────────────────────────────────────────────────────────
-// GROUPS — experience-style groupings shown in AssessmentIntro.
-// ─────────────────────────────────────────────────────────────────────────────
-export const GROUPS = [
-  { id: 1, mode: 'story',        name: 'Story Scenarios',    emoji: '📖', desc: "Pick how you'd react",          color: 'from-primary to-[#6A2FE0]' },
-  { id: 2, mode: 'swipe',        name: 'Friendship Check',   emoji: '🤝', desc: 'Quick yes or no calls',          color: 'from-accent to-[#FF7B95]'   },
-  { id: 3, mode: 'this-or-that', name: 'Progress Challenge', emoji: '⚡', desc: 'This or that, no overthinking',  color: 'from-support to-[#3A0CA3]'  },
-  { id: 4, mode: 'emoji-reaction',name: 'Stress Reactions',  emoji: '🌪️', desc: 'React with a single emoji',     color: 'from-highlight to-[#FFAE5C]' },
-  { id: 5, mode: 'hot-take',     name: 'Future Takes',       emoji: '🔭', desc: 'Agree, disagree, no in-between', color: 'from-accent to-highlight'    },
-];
-
-// ─────────────────────────────────────────────────────────────────────────────
 // TRAIT_LABELS — internal scoring key → human-readable display label.
 // Used by scoring.js (growthAreas / topTraits) and report.js (SCORE_LABELS).
 // ─────────────────────────────────────────────────────────────────────────────

@@ -45,13 +45,3 @@ export function computeResults(traitScores) {
     topTraits,
   };
 }
-
-export const DETECTION_MESSAGES = {
-  leadership: { emoji: '🔥', label: 'Leadership detected' },
-  empathy: { emoji: '💜', label: 'Empathy rising' },
-  social: { emoji: '🌟', label: 'Social energy increasing' },
-  discipline: { emoji: '🎯', label: 'Discipline detected' },
-  creativity: { emoji: '✨', label: 'Creativity detected' },
-  introspection: { emoji: '🧠', label: 'Deep thinking detected' },
-  risk: { emoji: '⚡', label: 'Risk appetite spiking' },
-};

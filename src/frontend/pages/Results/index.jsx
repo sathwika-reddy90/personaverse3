@@ -263,7 +263,7 @@ export default function Results() {
       setShowConfetti(true);
       setTimeout(() => setShowConfetti(false), 2600);
     }
-    navigate('/insights');
+    navigate('/dashboard');
   };
 
   const next = () => {

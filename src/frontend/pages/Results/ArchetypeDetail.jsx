@@ -94,8 +94,8 @@ export default function ArchetypeDetail() {
           </div>
         </div>
 
-        <Button variant="primary" onClick={() => navigate('/insights')}>
-          Open my Intelligence Hub
+        <Button variant="primary" onClick={() => navigate('/dashboard')}>
+          Back to Dashboard
         </Button>
       </div>
     </PageTransition>

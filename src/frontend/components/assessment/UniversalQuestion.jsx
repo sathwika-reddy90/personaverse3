@@ -13,9 +13,6 @@ export default function UniversalQuestion({ question, onAnswer }) {
   return (
     <div className="w-full space-y-4">
       <div className="bg-white/60 backdrop-blur border border-ink/8 rounded-3xl p-5 shadow-soft">
-        <p className="text-[10px] font-bold uppercase tracking-widest text-ink/35 mb-2">
-          {question.category}
-        </p>
         <p className="font-display font-bold text-[17px] text-ink leading-snug">
           {question.text}
         </p>

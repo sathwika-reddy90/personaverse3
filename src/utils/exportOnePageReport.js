@@ -25,6 +25,9 @@ function waitForPaint() {
  * @param {Object} options.data    - all props for OnePageSummaryDocument
  * @param {string} options.fileName - file name for the saved PDF
  */
+// Design width of OnePageSummaryDocument — matches the wide landscape layout.
+const DOC_WIDTH_PX = 1200;
+
 export async function exportOnePageSummary({ data, fileName }) {
   // ① Mount into a fresh node placed at (0,0) so html2canvas can find it.
   //    opacity:0 keeps it invisible; overflow:visible avoids clipping tall content.
@@ -33,7 +36,7 @@ export async function exportOnePageSummary({ data, fileName }) {
     position: 'fixed',
     top: '0',
     left: '0',
-    width: '794px',
+    width: `${DOC_WIDTH_PX}px`,
     opacity: '0',
     pointerEvents: 'none',
     zIndex: '-9999',
@@ -54,14 +57,14 @@ export async function exportOnePageSummary({ data, fileName }) {
     throw new Error('OnePageSummaryDocument rendered nothing — check component props.');
   }
 
-  // ③ Capture. Pass windowWidth so text layout matches the 794 px design width.
+  // ③ Capture. Pass windowWidth so text layout matches the design width.
   let canvas;
   try {
     canvas = await html2canvas(inner, {
       scale: 2,
       useCORS: true,
       backgroundColor: '#FFFFFF',
-      windowWidth: 794,
+      windowWidth: DOC_WIDTH_PX,
       windowHeight: inner.scrollHeight,
       scrollX: 0,
       scrollY: 0,
@@ -72,18 +75,20 @@ export async function exportOnePageSummary({ data, fileName }) {
     document.body.removeChild(container);
   }
 
-  // ⑤ Write to A4 PDF, scaling to fit if the content is taller than one page.
-  const pdf = new jsPDF({ orientation: 'portrait', unit: 'mm', format: 'a4', compress: true });
-  const pdfW = pdf.internal.pageSize.getWidth();   // 210 mm
-  const pdfH = pdf.internal.pageSize.getHeight();  // 297 mm
-  const imgH = pdfW * (canvas.height / canvas.width);
+  // ⑤ Write to a single page sized to fit the content exactly — A4 landscape
+  // width (297mm) with a custom height computed from the canvas aspect ratio,
+  // so the whole report renders on one page at full size with no cropping or
+  // scaling-down.
+  const pdfW = 297; // mm, A4 landscape width
+  const pdfH = pdfW * (canvas.height / canvas.width);
+
+  const pdf = new jsPDF({ unit: 'mm', format: [pdfW, pdfH], compress: true });
 
   pdf.addImage(
     canvas.toDataURL('image/png'),
     'PNG',
     0, 0,
-    pdfW,
-    imgH <= pdfH ? imgH : pdfH,
+    pdfW, pdfH,
     undefined,
     'FAST',
   );
